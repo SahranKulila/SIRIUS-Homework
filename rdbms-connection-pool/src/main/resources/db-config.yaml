@@ -1,6 +1,6 @@
-databaseName: "Sirius" //le nom de ma base de données (à la place de pds)
-host: "127.0.0.1" //adresse localhost
-port: 3306 //port de connexion de mon mysql
-username : "monnomd'utilisateur" //mon nom d'utilisateur de mon compte mysql (modifié pour des raisons de confidentialité)
-password: "monmotdepasse" //mon mot de passe de mon compte mysql (idem)
+databaseName: "Sirius" #le nom de ma base de données (à la place de pds)
+host: "127.0.0.1" #adresse localhost
+port: 3306 #port de connexion de mon mysql
+username : "monnomd'utilisateur" #mon nom d'utilisateur de mon compte mysql (modifié pour des raisons de confidentialité)
+password: "monmotdepasse" #mon mot de passe de mon compte mysql (idem)
 poolSize: 1
