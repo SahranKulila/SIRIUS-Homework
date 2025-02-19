@@ -28,6 +28,15 @@ public class MainFrontEnd {
         final StudentService studentService = new StudentService(networkConfig);
         studentService.insertStudents();
         Students students = studentService.selectStudents();
+
+        //permet d'éviter l'erreur : Exception in thread "main" java.lang.NullPointerException: Cannot invoke "edu.ezip.ing1.pds.business.dto.Students.getStudents()" because "students" is null
+        //at edu.ezip.ing1.pds.MainFrontEnd.main(MainFrontEnd.java:39)
+        if (students == null || students.getStudents() == null) {
+            logger.warn("Aucun étudiant trouvé ou une erreur s'est produite lors de la récupération des étudiants.");
+            System.out.println("Aucun étudiant disponible.");
+            return;
+        }
+
         final AsciiTable asciiTable = new AsciiTable();
         for (final Student student : students.getStudents()) {
             asciiTable.addRule();
