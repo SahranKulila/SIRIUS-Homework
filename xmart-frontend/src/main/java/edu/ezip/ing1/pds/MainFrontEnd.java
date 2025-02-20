@@ -39,7 +39,9 @@ public class MainFrontEnd {
         final AsciiTable asciiTable = new AsciiTable();
         for (final Student student : students.getStudents()) {
             asciiTable.addRule();
-            asciiTable.addRow(student.getFirstname(), student.getName(), student.getGroup());
+            asciiTable.addRow(student.getFirstname(),
+                    student.getName(),
+                    student.getGroup());
         }
 
         asciiTable.addRule();

@@ -1,5 +1,6 @@
 package edu.ezip.ing1.pds.requests;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ezip.ing1.pds.business.dto.Student;
 import edu.ezip.ing1.pds.client.commons.ClientRequest;
@@ -20,8 +21,18 @@ public class InsertStudentsClientRequest extends ClientRequest<Student, String> 
     @Override
     public String readResult(String body) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
-        final Map<String, Integer> studentIdMap = mapper.readValue(body, Map.class);
-        final String result  = studentIdMap.get("student_id").toString();
-        return result;
+
+        JsonNode rootNode = mapper.readTree(body);
+
+        if (rootNode.has("response")) {
+            rootNode = rootNode.get("response");
+        }
+
+        JsonNode responseBodyNode = rootNode.get("response_body");
+
+        final Map<String, Integer> studentIdMap = mapper.treeToValue(responseBodyNode, Map.class);
+
+        return studentIdMap.get("student_id").toString();
     }
+
 }
