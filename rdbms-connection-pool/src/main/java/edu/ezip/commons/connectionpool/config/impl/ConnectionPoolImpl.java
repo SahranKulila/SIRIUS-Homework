@@ -22,8 +22,6 @@ public class ConnectionPoolImpl {
     private final Logger logger = LoggerFactory.getLogger(LoggingLabel);
     private static String url;
     private  static String databaseURL;
-    // A really appropriate JAVA Object (since JAVA 7) to implement this kind of stuff
-    // Remind that BlockingDeque is a synchronized ready object;
     private static final BlockingDeque<Connection> connections = new LinkedBlockingDeque<Connection>(
                                                                 DatabaseConnectionBasicConfiguration.getInstance().
                                                                         getPoolSize());
@@ -104,7 +102,7 @@ public class ConnectionPoolImpl {
         connections.offerLast(connection);
     }
 
-//    private void closeConnection(final Connection c) throws SQLException {
-//        c.close();
-//    }
+    private void closeConnection(final Connection c) throws SQLException {
+        c.close();
+    }
 }

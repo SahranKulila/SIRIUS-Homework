@@ -48,8 +48,9 @@ public class StudentService {
             request.setRequestId(requestId);
             request.setRequestOrder(insertRequestOrder);
             request.setRequestContent(jsonifiedGuy);
-            objectMapper.enable(SerializationFeature.WRAP_ROOT_VALUE);
+            objectMapper.enable(SerializationFeature.WRAP_ROOT_VALUE);//error idk why
             final byte []  requestBytes = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(request);
+            //warn idk why
 
             final InsertStudentsClientRequest clientRequest = new InsertStudentsClientRequest(
                     networkConfig,
