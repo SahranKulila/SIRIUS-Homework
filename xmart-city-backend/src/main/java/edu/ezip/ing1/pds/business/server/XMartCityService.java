@@ -75,7 +75,6 @@ public class XMartCityService {
     private Response InsertStudent(final Request request, final Connection connection) throws SQLException, IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
 
-        // Deserialize student info from request body
         if (request.getRequestBody() == null || request.getRequestBody().isEmpty()) {
             throw new IOException("Request body is missing for InsertStudent");
         }
@@ -83,7 +82,6 @@ public class XMartCityService {
         final Student student = objectMapper.readValue(request.getRequestBody(), Student.class);
         logger.info("Insertion d'un étudiant reçu : {}", student);
 
-        // Prepare and execute insert query
         final PreparedStatement stmt = connection.prepareStatement(Queries.INSERT_STUDENT.query, Statement.RETURN_GENERATED_KEYS);
         stmt.setString(1, student.getName());
         stmt.setString(2, student.getFirstname());
@@ -91,13 +89,11 @@ public class XMartCityService {
 
         int rowsAffected = stmt.executeUpdate();
 
-        // Handle no rows affected (error case)
         if (rowsAffected == 0) {
             logger.warn("Aucun étudiant inséré.");
             return new Response(request.getRequestId(), "Erreur: Aucune insertion effectuée.");
         }
 
-        // Assign generated ID to student if applicable
         final ResultSet res = stmt.getGeneratedKeys();
 
         if (!res.next()) {
@@ -105,13 +101,11 @@ public class XMartCityService {
             return new Response(request.getRequestId(), "Erreur: Aucun ID généré.");
         }
 
-        // Create response map with student_id
         Map<String, Integer> responseMap = new HashMap<>();
         responseMap.put("student_id", res.getInt(1));
 
         logger.info("Étudiant inséré avec succès. ID généré: {}", res.getInt(1));
 
-        // Serialize response map to JSON
         return new Response(request.getRequestId(), objectMapper.writeValueAsString(responseMap));
     }
 

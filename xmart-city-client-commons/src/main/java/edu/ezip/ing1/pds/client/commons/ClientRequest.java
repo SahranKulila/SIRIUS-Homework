@@ -79,22 +79,20 @@ public abstract class ClientRequest<N,S> implements Runnable {
 
             if (inputData.length == 0) {
                 logger.warn("No data received from the server.");
-                return; // Aucun traitement si les données sont vides
+                return;
             }
 
             LoggingUtils.logDataMultiLine(logger, Level.TRACE, inputData);
 
-            // Désérialisation
             Response response = null;
             final ObjectMapper mapper = new ObjectMapper();
             try {
                 response = mapper.readValue(inputData, Response.class);
             } catch (IOException e) {
                 logger.error("Failed to parse JSON response: {}", new String(inputData));
-                return; // Stopper si la désérialisation échoue
+                return;
             }
 
-            // Vérification de nullité avant d'utiliser response
             if (response != null) {
                 logger.debug("Response = {}", response.toString());
                 result = readResult(response.responseBody);
