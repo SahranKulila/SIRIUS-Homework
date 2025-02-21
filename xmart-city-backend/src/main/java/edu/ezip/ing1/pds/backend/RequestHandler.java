@@ -97,7 +97,7 @@ public class RequestHandler implements Runnable {
         logger.debug("data received {} bytes", data.length);
         LoggingUtils.logDataMultiLine(logger, Level.DEBUG, data);
         final ObjectMapper mapper = new ObjectMapper();
-        //mapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
+        mapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
         final Request request = mapper.readValue(data, Request.class);
         logger.debug(request.toString());
         return request;
@@ -105,7 +105,7 @@ public class RequestHandler implements Runnable {
 
     private final byte [] getResponse(final Response response) throws JsonProcessingException {
         final ObjectMapper mapper = new ObjectMapper();
-        //mapper.enable(SerializationFeature.WRAP_ROOT_VALUE);
+        mapper.enable(SerializationFeature.WRAP_ROOT_VALUE);
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(response);
     }
 

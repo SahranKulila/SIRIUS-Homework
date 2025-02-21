@@ -29,19 +29,17 @@ public class MainFrontEnd {
         studentService.insertStudents();
         Students students = studentService.selectStudents();
 
-        /*if (students == null || students.getStudents() == null) {
+        if (students == null || students.getStudents() == null) {
             logger.warn("Aucun étudiant trouvé ou une erreur s'est produite lors de la récupération des étudiants.");
             System.out.println("Aucun étudiant disponible.");
             return;
-        }*/
+        }
 
 
         final AsciiTable asciiTable = new AsciiTable();
         for (final Student student : students.getStudents()) {
             asciiTable.addRule();
-            asciiTable.addRow(student.getFirstname(),
-                    student.getName(),
-                    student.getGroup());
+            asciiTable.addRow(student.getFirstname(), student.getName(), student.getGroup());
         }
 
         asciiTable.addRule();

@@ -38,11 +38,6 @@ public class StudentService {
         final Deque<ClientRequest> clientRequests = new ArrayDeque<ClientRequest>();
         final Students guys = ConfigLoader.loadConfig(Students.class, studentsToBeInserted);
 
-        if (guys == null || guys.getStudents() == null || guys.getStudents().isEmpty()) {
-            logger.error("Failed to load students from YAML. Ensure the file exists and is formatted correctly.");
-            return;
-        }
-
         int birthdate = 0;
         for(final Student guy : guys.getStudents()) {
             final ObjectMapper objectMapper = new ObjectMapper();
@@ -53,9 +48,8 @@ public class StudentService {
             request.setRequestId(requestId);
             request.setRequestOrder(insertRequestOrder);
             request.setRequestContent(jsonifiedGuy);
-            objectMapper.enable(SerializationFeature.WRAP_ROOT_VALUE);//error idk why
+            objectMapper.enable(SerializationFeature.WRAP_ROOT_VALUE);
             final byte []  requestBytes = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(request);
-            //warn idk why
 
             final InsertStudentsClientRequest clientRequest = new InsertStudentsClientRequest(
                     networkConfig,
@@ -94,18 +88,12 @@ public class StudentService {
             final ClientRequest joinedClientRequest = clientRequests.pop();
             joinedClientRequest.join();
             logger.debug("Thread {} complete.", joinedClientRequest.getThreadName());
-
-            Students students = (Students) joinedClientRequest.getResult();
-            if (students == null || students.getStudents() == null) {
-                logger.error("No students received from server or response format is incorrect.");
-                return new Students();
-            }
+            return (Students) joinedClientRequest.getResult();
         }
         else {
             logger.error("No students found");
-            return new Students();
+            return null;
         }
-        return new Students();
     }
 
 }

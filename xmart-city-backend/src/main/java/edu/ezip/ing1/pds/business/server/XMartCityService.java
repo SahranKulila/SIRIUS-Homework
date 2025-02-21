@@ -69,7 +69,6 @@ public class XMartCityService {
                 break;
         }
 
-        logger.debug("Response being sent to client: {}", response);
         return response;
     }
 
@@ -122,7 +121,6 @@ public class XMartCityService {
         final Statement stmt = connection.createStatement();
         final ResultSet res = stmt.executeQuery(Queries.SELECT_ALL_STUDENTS.query);
         Students students = new Students();
-
         while (res.next()) {
             Student student = new Student();
             student.setName(res.getString(1));
