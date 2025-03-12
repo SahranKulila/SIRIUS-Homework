@@ -189,7 +189,7 @@
             <!-- Default configuration for running with: mvn clean javafx:run -->
             <id>default-cli</id>
             <configuration>
-              <mainClass>io.kulila.sahran/io.kulila.gui.HelloApplication</mainClass>
+              <mainClass>io.kulila.sahran/io.kulila.gui.TestingView</mainClass>
               <launcher>app</launcher>
               <jlinkZipName>app</jlinkZipName>
               <jlinkImageName>app</jlinkImageName>
