@@ -1,0 +1,13 @@
+{
+  "projectId": "proj123",
+  "userId": "user456",
+  "name": "Sample Project",
+  "description": "This is a sample project.",
+  "createdAt": "2023-10-01",
+  "updatedAt": "2023-10-02",
+  "sceneData": "{}",
+  "metadata": "{}",
+  "assetId": "asset123",
+  "configId": "config456",
+  "extensionId": "ext789"
+}
