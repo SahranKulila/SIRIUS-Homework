@@ -1,4 +1,4 @@
-module io.kulila.sahran {
+module io.kulila.gui {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.web;
@@ -14,6 +14,6 @@ module io.kulila.sahran {
     requires com.fasterxml.jackson.databind;
     requires java.sql;
 
-    opens io.kulila.sahran to javafx.fxml;
-    exports io.kulila.sahran;
+    opens io.kulila.gui to javafx.fxml;
+    exports io.kulila.gui;
 }

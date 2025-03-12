@@ -1,4 +1,4 @@
-package io.kulila.sahran;
+package io.kulila.gui;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
