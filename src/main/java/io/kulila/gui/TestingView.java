@@ -20,6 +20,7 @@ public class TestingView extends Application {
     private static final Logger logger = LoggerFactory.getLogger(TestingView.class);
     private static final double CAMERA_SPEED = 5.0;
     private static final double ROTATION_SPEED = 2.0;
+    private static final double CUBE_DISTANCE = 300.0;
 
     private final PerspectiveCamera camera = new PerspectiveCamera(true);
     private final Group root = new Group();
@@ -29,8 +30,8 @@ public class TestingView extends Application {
     private double cameraY = 0;
     private double cameraZ = -500;
 
-    private double angleX = 0;
-    private double angleY = 0;
+    private double angleX = 0; // Pitch (up/down)
+    private double angleY = 0; // Yaw (left/right)
 
     @Override
     public void start(Stage primaryStage) {
@@ -42,11 +43,7 @@ public class TestingView extends Application {
 
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.getTransforms().addAll(
-                new Translate(cameraX, cameraY, cameraZ),
-                new Rotate(angleX, Rotate.X_AXIS),
-                new Rotate(angleY, Rotate.Y_AXIS)
-        );
+        updateCamera();
 
         scene.setCamera(camera);
 
@@ -64,66 +61,86 @@ public class TestingView extends Application {
     private void handleKeyPress(KeyCode code) {
         switch (code) {
             case W:
-                cameraZ += CAMERA_SPEED * Math.cos(Math.toRadians(angleY));
-                cameraX += CAMERA_SPEED * Math.sin(Math.toRadians(angleY));
-                logger.info("Moving forward: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
+                moveForward();
                 break;
             case S:
-                cameraZ -= CAMERA_SPEED * Math.cos(Math.toRadians(angleY));
-                cameraX -= CAMERA_SPEED * Math.sin(Math.toRadians(angleY));
-                logger.info("Moving backward: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
+                moveBackward();
                 break;
             case A:
-                cameraX -= CAMERA_SPEED * Math.cos(Math.toRadians(angleY));
-                cameraZ += CAMERA_SPEED * Math.sin(Math.toRadians(angleY));
-                logger.info("Moving left: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
+                moveLeft();
                 break;
             case D:
-                cameraX += CAMERA_SPEED * Math.cos(Math.toRadians(angleY));
-                cameraZ -= CAMERA_SPEED * Math.sin(Math.toRadians(angleY));
-                logger.info("Moving right: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
+                moveRight();
                 break;
             case Q:
                 cameraY += CAMERA_SPEED;
-                logger.info("Moving up: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
                 break;
             case E:
                 cameraY -= CAMERA_SPEED;
-                logger.info("Moving down: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
                 break;
             case LEFT:
                 angleY -= ROTATION_SPEED;
-                logger.info("Rotating left: angleX={}, angleY={}", angleX, angleY);
                 break;
             case RIGHT:
                 angleY += ROTATION_SPEED;
-                logger.info("Rotating right: angleX={}, angleY={}", angleX, angleY);
                 break;
             case UP:
-                angleX += ROTATION_SPEED;
-                logger.info("Rotating up: angleX={}, angleY={}", angleX, angleY);
+                angleX = Math.max(-90, angleX - ROTATION_SPEED); // Clamp pitch to [-90, 90]
                 break;
             case DOWN:
-                angleX -= ROTATION_SPEED;
-                logger.info("Rotating down: angleX={}, angleY={}", angleX, angleY);
+                angleX = Math.min(90, angleX + ROTATION_SPEED); // Clamp pitch to [-90, 90]
                 break;
         }
-
         updateCamera();
+    }
+
+    private void moveForward() {
+        double radianY = Math.toRadians(angleY);
+        double radianX = Math.toRadians(angleX);
+        cameraZ += CAMERA_SPEED * Math.cos(radianY) * Math.cos(radianX);
+        cameraX += CAMERA_SPEED * Math.sin(radianY) * Math.cos(radianX);
+        cameraY += CAMERA_SPEED * Math.sin(radianX);
+    }
+
+    private void moveBackward() {
+        double radianY = Math.toRadians(angleY);
+        double radianX = Math.toRadians(angleX);
+        cameraZ -= CAMERA_SPEED * Math.cos(radianY) * Math.cos(radianX);
+        cameraX -= CAMERA_SPEED * Math.sin(radianY) * Math.cos(radianX);
+        cameraY -= CAMERA_SPEED * Math.sin(radianX);
+    }
+
+    private void moveLeft() {
+        double radianY = Math.toRadians(angleY);
+        cameraX -= CAMERA_SPEED * Math.cos(radianY);
+        cameraZ += CAMERA_SPEED * Math.sin(radianY);
+    }
+
+    private void moveRight() {
+        double radianY = Math.toRadians(angleY);
+        cameraX += CAMERA_SPEED * Math.cos(radianY);
+        cameraZ -= CAMERA_SPEED * Math.sin(radianY);
     }
 
     private void handleMouseClick(Scene scene, javafx.scene.input.MouseEvent event) {
         if (event.getButton() == MouseButton.PRIMARY) {
-            Point3D point = getMousePositionIn3D(scene, event);
-            logger.info("Mouse clicked at 3D position: x={}, y={}, z={}", point.getX(), point.getY(), point.getZ());
+            Point3D point = getWorldPositionFromMouse(scene, event);
             addCube(point.getX(), point.getY(), point.getZ());
         }
     }
 
-    private Point3D getMousePositionIn3D(Scene scene, javafx.scene.input.MouseEvent event) {
-        double x = event.getX() - scene.getWidth() / 2;
-        double y = event.getY() - scene.getHeight() / 2;
-        double z = cameraZ;
+    private Point3D getWorldPositionFromMouse(Scene scene, javafx.scene.input.MouseEvent event) {
+        double radianY = Math.toRadians(angleY);
+        double radianX = Math.toRadians(angleX);
+
+        double forwardX = Math.sin(radianY) * Math.cos(radianX);
+        double forwardY = Math.sin(radianX);
+        double forwardZ = Math.cos(radianY) * Math.cos(radianX);
+
+        double x = cameraX + forwardX * CUBE_DISTANCE;
+        double y = cameraY + forwardY * CUBE_DISTANCE;
+        double z = cameraZ + forwardZ * CUBE_DISTANCE;
+
         return new Point3D(x, y, z);
     }
 
@@ -143,8 +160,8 @@ public class TestingView extends Application {
         camera.getTransforms().clear();
         camera.getTransforms().addAll(
                 new Translate(cameraX, cameraY, cameraZ),
-                new Rotate(angleX, Rotate.X_AXIS),
-                new Rotate(angleY, Rotate.Y_AXIS)
+                new Rotate(-angleX, Rotate.X_AXIS),
+                new Rotate(-angleY, Rotate.Y_AXIS)
         );
         logger.info("Updated camera position: cameraX={}, cameraY={}, cameraZ={}", cameraX, cameraY, cameraZ);
     }
