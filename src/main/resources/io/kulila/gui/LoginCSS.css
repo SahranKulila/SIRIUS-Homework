@@ -1,0 +1,79 @@
+.stack-pane {
+    -fx-background-color: #f4f4f4;
+    -fx-alignment: center;
+}
+
+.border-pane {
+    -fx-background-color: #ffffff;
+    -fx-pref-width: 722px;
+    -fx-pref-height: 491px;
+}
+
+.left-anchor-pane {
+    -fx-background-color: #e0e0e0;
+    -fx-pref-width: 350px;
+    -fx-padding: 20px;
+}
+
+.right-anchor-pane {
+    -fx-background-color: #ffffff;
+    -fx-pref-width: 350px;
+    -fx-padding: 20px;
+}
+
+.label {
+    -fx-font-family: "Calibri Bold";
+    -fx-font-size: 24px;
+    -fx-text-fill: #333333;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+.text-field, .password-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 5px;
+    -fx-padding: 5px;
+    -fx-pref-width: 208px;
+}
+
+.button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-border-radius: 5px;
+    -fx-padding: 10px 20px;
+    -fx-pref-width: 234px;
+    -fx-alignment: center;
+}
+
+.button:hover {
+    -fx-background-color: #45a049;
+}
+
+.font-awesome-icon {
+    -fx-fill: #333333;
+}
+
+#welcomeLabel {
+    -fx-font-size: 28px;
+    -fx-padding: 10px 0;
+}
+
+#appNameLabel {
+    -fx-font-size: 32px;
+    -fx-padding: 20px 0;
+}
+
+#createAccountQuestion {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+}
+
+#loginButton {
+    -fx-background-color: #2196F3;
+}
+
+#createAccountButton {
+    -fx-background-color: #FF9800;
+}
