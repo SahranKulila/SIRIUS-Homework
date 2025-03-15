@@ -12,7 +12,7 @@ module io.kulila.gui {
     requires com.almasb.fxgl.all;
     requires org.slf4j;
     requires com.fasterxml.jackson.databind;
-    requires java.sql;
+    requires org.yaml.snakeyaml;
 
     opens io.kulila.gui to javafx.fxml;
     exports io.kulila.gui;
