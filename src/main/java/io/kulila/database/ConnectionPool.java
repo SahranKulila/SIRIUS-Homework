@@ -40,7 +40,7 @@ public class ConnectionPool {
     public Connection getConnection() throws SQLException {
         try {
             Connection connection = connectionPool.poll(timeoutMillis, TimeUnit.MILLISECONDS);
-            if (connection == null) {
+            if (connection == null || !connection.isValid(2)) {
                 throw new SQLException("Timeout: Could not acquire a connection from the pool.");
             }
             return connection;
