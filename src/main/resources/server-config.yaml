@@ -1,0 +1,5 @@
+port: 8080
+maxClients: 10
+maxPoolSize: 5
+connectionTimeoutMillis: 5000
+queryTimeoutMillis: 10000

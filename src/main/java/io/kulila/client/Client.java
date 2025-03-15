@@ -2,6 +2,7 @@ package io.kulila.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.kulila.utils.YamlConfigurator;
 
 import java.io.*;
 import java.net.Socket;
@@ -10,21 +11,26 @@ import java.util.Scanner;
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private final String serverHost;
-    private final int serverPort;
+    private String serverHost;
+    private int serverPort;
     private Socket socket;
     private BufferedReader input;
     private PrintWriter output;
     private Scanner scanner;
     private boolean running = false;
 
-    public Client(String serverHost, int serverPort) {
-        this.serverHost = serverHost;
-        this.serverPort = serverPort;
+    public Client() {
+        this("client-config.yaml");
     }
 
-    public Client() {
-        this("localhost", 8080);
+    public Client(String configPath) {
+        try {
+            YamlConfigurator.configure(this, configPath);
+        } catch (Exception e) {
+            logger.error("Failed to load configuration from {}: {}", configPath, e.getMessage());
+            this.serverHost = "localhost";
+            this.serverPort = 8080;
+        }
     }
 
     public void start() {
@@ -85,20 +91,7 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        String host = "localhost"; // Default host
-        int port = 8080; // Default port
-
-        if (args.length >= 2) {
-            try {
-                host = args[0];
-                port = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                logger.warn("Invalid arguments. Using default values: host={}, port={}",
-                        host, port);
-            }
-        }
-
-        Client client = new Client(host, port);
+        Client client = new Client();
         client.start();
     }
 }

@@ -1,5 +1,6 @@
 package io.kulila.server;
 
+import io.kulila.utils.YamlConfigurator;
 import io.kulila.database.ConnectionPool;
 import io.kulila.database.QueryExecutor;
 import org.slf4j.Logger;
@@ -12,34 +13,36 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
-
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
-    private int port;
+    private int port = 8080; // Default port
+    private int maxClients = 10; // Default max clients
+    private int maxPoolSize = 5; // Default connection pool size
+    private long connectionTimeoutMillis = 5000; // Default connection timeout
+    private long queryTimeoutMillis = 10000; // Default query timeout
+
     private boolean running = false;
     private ServerSocket serverSocket;
     private ExecutorService threadPool;
-//    private int maxClients;
-
     private final ConnectionPool connectionPool;
     private final QueryExecutor queryExecutor;
 
-    public Server(int port, int maxClients, ConnectionPool connectionPool, QueryExecutor queryExecutor) {
-        this.port = port;
-        this.connectionPool = connectionPool;
-        this.queryExecutor = queryExecutor;
-        this.threadPool = Executors.newFixedThreadPool(maxClients);
+    public Server() {
+        this("server-config.yaml");
     }
 
-//    public Server(int port, int maxClients) {
-//        this.port = port;
-//        this.maxClients = maxClients;
-//        this.threadPool = Executors.newFixedThreadPool(maxClients);
-//    }
+    public Server(String yamlFile) {
+        try {
+            YamlConfigurator.configure(this, yamlFile);
+            logger.info("Loaded server configuration from {}", yamlFile);
+        } catch (Exception e) {
+            logger.error("Failed to load configuration from {}. Using defaults.", yamlFile, e);
+        }
 
-//    public Server() {
-//        this(8080, 10); // Default port 8080, max 10 clients
-//    }
+        this.connectionPool = new ConnectionPool(maxPoolSize, connectionTimeoutMillis);
+        this.queryExecutor = new QueryExecutor(maxClients, queryTimeoutMillis);
+        this.threadPool = Executors.newFixedThreadPool(maxClients);
+    }
 
     public void start() {
         try {
@@ -74,5 +77,11 @@ public class Server {
         } catch (IOException e) {
             logger.error("Error stopping server: {}", e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+        String yamlFile = args.length > 0 ? args[0] : "server-config.yaml";
+        Server server = new Server(yamlFile);
+        server.start();
     }
 }

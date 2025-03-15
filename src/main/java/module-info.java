@@ -13,6 +13,7 @@ module io.kulila.gui {
     requires org.slf4j;
     requires com.fasterxml.jackson.databind;
     requires org.yaml.snakeyaml;
+    requires java.sql;
 
     opens io.kulila.gui to javafx.fxml;
     exports io.kulila.gui;

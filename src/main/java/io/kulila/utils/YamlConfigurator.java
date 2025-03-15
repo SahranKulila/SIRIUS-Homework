@@ -12,22 +12,31 @@ import java.util.Map;
 public class YamlConfigurator {
     private static final Logger logger = LoggerFactory.getLogger(YamlConfigurator.class);
 
-    public void configure(Object target, String yamlFile) throws ReflectiveOperationException, IOException {
+    private YamlConfigurator() {
+        throw new UnsupportedOperationException(
+                "YamlConfigurator is a utility class and should not be instantiated.");
+    }
+
+    public static void configure(Object target, String yamlFile)
+            throws ReflectiveOperationException, IOException {
         Yaml yaml = new Yaml();
 
-        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(yamlFile)) {
+        try (InputStream inputStream = YamlConfigurator.class
+                                        .getClassLoader()
+                                        .getResourceAsStream(yamlFile)) {
             if (inputStream == null) {
                 throw new IllegalArgumentException("YAML file not found: " + yamlFile);
             }
             Map<String, Object> configMap = yaml.load(inputStream);
             configureObject(target, configMap);
         } catch (Exception e) {
-            logger.error("Error loading YAML file: " + yamlFile, e);
+            logger.error("Error loading YAML file: {}", yamlFile, e);
             throw e;
         }
     }
 
-    private void configureObject(Object target, Map<String, Object> configMap) throws ReflectiveOperationException {
+    private static void configureObject(Object target, Map<String, Object> configMap)
+            throws ReflectiveOperationException {
         Class<?> clazz = target.getClass();
 
         for (Map.Entry<String, Object> entry : configMap.entrySet()) {
@@ -57,7 +66,7 @@ public class YamlConfigurator {
         }
     }
 
-    private Object convertValue(Field field, Object value) {
+    private static Object convertValue(Field field, Object value) {
         Class<?> fieldType = field.getType();
 
         if (fieldType.isAssignableFrom(value.getClass())) {
