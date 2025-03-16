@@ -1,163 +1,113 @@
 package io.kulila.gui;
 
 import javafx.application.Application;
-import javafx.scene.Group;
-import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Box;
-import javafx.scene.shape.TriangleMesh;
-import javafx.scene.shape.MeshView;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.geometry.Point3D;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
-import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Translate;
-import javafx.scene.shape.CullFace;
-import javafx.scene.input.PickResult;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestingView extends Application {
 
-    private PerspectiveCamera camera;
-    private final double MOVE_SPEED = 2;
-    private final double ROTATE_SPEED = 0.2;
-    private double mouseX, mouseY;
-    private final Group root = new Group();
-    private boolean canPlaceCube = false;
+    private Object currentObject;
+    private List<TextField> inputFields = new ArrayList<>();
 
-    private double yaw = 0;
-    private double pitch = 0;
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) {
-        // Create a large plane (ground)
-        MeshView ground = createGround();
-        root.getChildren().add(ground);
+        primaryStage.setTitle("Dynamic Object Editor");
 
-        // Create and configure camera
-        camera = new PerspectiveCamera(true);
-        camera.setNearClip(0.1);
-        camera.setFarClip(10000);
-        camera.setTranslateZ(-50);
+        Person person = new Person("John Appleseed", 30, 170);
+        setObjectToEdit(person);
 
-        // Scene setup
-        Scene scene = new Scene(root, 800, 600, true);
-        scene.setFill(Color.LIGHTBLUE);
-        scene.setCamera(camera);
+        VBox vbox = new VBox(10);
+        vbox.getChildren().add(new Label("Object Editor"));
 
-        // Event handlers
-        scene.setOnKeyPressed(this::handleKeyPress);
-        scene.setOnKeyReleased(this::handleKeyRelease);
-        scene.setOnMousePressed(this::handleMousePress);
-        scene.setOnMouseDragged(this::handleMouseDrag);
+        Label objectNameLabel = new Label("Object: " + currentObject.getClass().getSimpleName());
+        vbox.getChildren().add(objectNameLabel);
 
-        primaryStage.setTitle("JavaFX 3D Scene");
+        Field[] fields = currentObject.getClass().getDeclaredFields();
+        for (int i = 0; i < fields.length; i++) {
+            Label fieldLabel = new Label(fields[i].getName() + ":");
+            vbox.getChildren().add(fieldLabel);
+            vbox.getChildren().add(inputFields.get(i));
+        }
+
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(e -> saveChanges());
+        vbox.getChildren().add(saveButton);
+
+        Scene scene = new Scene(vbox, 300, 300);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    private MeshView createGround() {
-        float size = 500;
-        TriangleMesh mesh = new TriangleMesh();
-        mesh.getPoints().addAll(-size, 0, -size, size, 0, -size, size, 0, size, -size, 0, size);
-        mesh.getTexCoords().addAll(0, 0);
-        mesh.getFaces().addAll(0, 0, 1, 0, 2, 0, 0, 0, 2, 0, 3, 0);
+    public void setObjectToEdit(Object object) {
+        this.currentObject = object;
+        inputFields.clear();
 
-        MeshView ground = new MeshView(mesh);
-        ground.setMaterial(new PhongMaterial(Color.DARKGREEN));
-        ground.setCullFace(CullFace.BACK);
-        return ground;
-    }
-
-    private void handleKeyPress(KeyEvent event) {
-        double change = MOVE_SPEED;
-        if (event.isShiftDown()) change *= 2;
-
-        Point3D forward = getForwardDirection();
-        Point3D right = getRightDirection();
-
-        switch (event.getCode()) {
-            case W -> moveCamera(forward.multiply(change));
-            case S -> moveCamera(forward.multiply(-change));
-            case A -> moveCamera(right.multiply(-change));
-            case D -> moveCamera(right.multiply(change));
-            case Q -> moveCamera(new Point3D(0, -change, 0));
-            case E -> moveCamera(new Point3D(0, change, 0));
-            case SPACE -> canPlaceCube = true;
-        }
-    }
-
-    private void handleKeyRelease(KeyEvent event) {
-        if (event.getCode() == KeyCode.SPACE) {
-            canPlaceCube = false;
-        }
-    }
-
-    private void moveCamera(Point3D direction) {
-        camera.setTranslateX(camera.getTranslateX() + direction.getX());
-        camera.setTranslateY(camera.getTranslateY() + direction.getY());
-        camera.setTranslateZ(camera.getTranslateZ() + direction.getZ());
-    }
-
-    private Point3D getForwardDirection() {
-        return new Point3D(
-                -Math.sin(Math.toRadians(yaw)),
-                0,
-                Math.cos(Math.toRadians(yaw))
-        ).normalize();
-    }
-
-    private Point3D getRightDirection() {
-        return new Point3D(
-                Math.cos(Math.toRadians(yaw)),
-                0,
-                Math.sin(Math.toRadians(yaw))
-        ).normalize();
-    }
-
-    private void handleMousePress(MouseEvent event) {
-        if (event.getButton() == MouseButton.PRIMARY && canPlaceCube) {
-            PickResult pickResult = event.getPickResult();
-            if (pickResult != null && pickResult.getIntersectedNode() != null) {
-                addCube(pickResult.getIntersectedPoint().getX(), pickResult.getIntersectedPoint().getZ());
+        Field[] fields = object.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                TextField textField = new TextField();
+                textField.setText(String.valueOf(field.get(object)));
+                inputFields.add(textField);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    private void handleMouseDrag(MouseEvent event) {
-        double deltaX = event.getSceneX() - mouseX;
-        double deltaY = event.getSceneY() - mouseY;
-
-        yaw -= deltaX * ROTATE_SPEED;
-        pitch -= deltaY * ROTATE_SPEED;
-
-        pitch = Math.max(-90, Math.min(90, pitch));
-
-        camera.getTransforms().clear();
-        camera.getTransforms().add(new Rotate(yaw, Rotate.Y_AXIS));
-        camera.getTransforms().add(new Rotate(pitch, Rotate.X_AXIS));
-        camera.getTransforms().add(new Translate(camera.getTranslateX(), camera.getTranslateY(), camera.getTranslateZ()));
-
-        mouseX = event.getSceneX();
-        mouseY = event.getSceneY();
+    private void saveChanges() {
+        Field[] fields = currentObject.getClass().getDeclaredFields();
+        for (int i = 0; i < fields.length; i++) {
+            fields[i].setAccessible(true);
+            try {
+                String value = inputFields.get(i).getText();
+                Class<?> fieldType = fields[i].getType();
+                if (fieldType == int.class) {
+                    fields[i].setInt(currentObject, Integer.parseInt(value));
+                } else if (fieldType == double.class) {
+                    fields[i].setDouble(currentObject, Double.parseDouble(value));
+                } else if (fieldType == boolean.class) {
+                    fields[i].setBoolean(currentObject, Boolean.parseBoolean(value));
+                } else {
+                    fields[i].set(currentObject, value);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Object updated: " + currentObject);
     }
 
-    private void addCube(double x, double z) {
-        Box cube = new Box(10, 10, 10);
-        cube.setMaterial(new PhongMaterial(Color.RED));
+    public static class Person {
+        private String name;
+        private int age;
+        private int height;
 
-        cube.setTranslateX(x);
-        cube.setTranslateY(5);
-        cube.setTranslateZ(z);
+        public Person(String name, int age, int height) {
+            this.name = name;
+            this.age = age;
+            this.height = height;
+        }
 
-        root.getChildren().add(cube);
-    }
-
-    public static void main(String[]args) {
-        launch(args);
+        @Override
+        public String toString() {
+            return "Person{" +
+                    "name='" + name + '\'' +
+                    ", age=" + age +
+                    ", height=" + height +
+                    '}';
+        }
     }
 }
