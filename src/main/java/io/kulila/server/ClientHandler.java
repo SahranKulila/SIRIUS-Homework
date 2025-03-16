@@ -4,6 +4,7 @@ import io.kulila.database.QueryExecutor;
 import io.kulila.database.ConnectionPool;
 
 import io.kulila.dataclass.Project;
+import io.kulila.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,9 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
@@ -22,11 +26,16 @@ public class ClientHandler implements Runnable {
     private Connection connection;
     private final ConnectionPool connectionPool;
     private final QueryExecutor queryExecutor;
+    private final Map<Class<?>, List<Object>> storedObjects;
 
-    public ClientHandler(Socket clientSocket, ConnectionPool connectionPool, QueryExecutor queryExecutor) {
+    public ClientHandler(Socket clientSocket,
+                         ConnectionPool connectionPool,
+                         QueryExecutor queryExecutor,
+                         Map<Class<?>, List<Object>> storedObjects) {
         this.clientSocket = clientSocket;
         this.connectionPool = connectionPool;
         this.queryExecutor = queryExecutor;
+        this.storedObjects = storedObjects;
         this.running = true;
     }
 
@@ -56,27 +65,10 @@ public class ClientHandler implements Runnable {
                         String result = queryExecutor.executeQuery(connection, query);
                         output.println(result);
                     }
-                } else if ("JSON_FILE".equalsIgnoreCase(clientMessage)) {
-                    JsonFileHandler jsonFileHandler = new JsonFileHandler();
-                    String result = jsonFileHandler.sendJsonFile(output);
-                    output.println(result);
-                } else if ("JSON_OBJECT".equalsIgnoreCase(clientMessage)) {
-                    Project project = new Project();
-                    project.setProjectId("proj123");
-                    project.setUserId("user456");
-                    project.setName("Sample Project");
-                    project.setDescription("This is a sample project.");
-                    project.setCreatedAt(new Date(2023, 10, 01));
-                    project.setUpdatedAt(new Date(2023, 10, 02));
-                    project.setSceneData("{}");
-                    project.setMetadata("{}");
-                    project.setAssetId("asset123");
-                    project.setConfigId("config456");
-                    project.setExtensionId("ext789");
-
-                    JsonObjectHandler jsonObjectHandler = new JsonObjectHandler();
-                    String result = jsonObjectHandler.sendJsonObject(output, project);
-                    output.println(result);    
+                } else if (clientMessage.startsWith("JSON_STRING ")) {
+                    handleJsonString(clientMessage.substring(12).trim());
+                } else if ("SHOW_OBJECTS".equalsIgnoreCase(clientMessage)) {
+                    showStoredObjects();
                 } else if ("exit".equalsIgnoreCase(clientMessage)) {
                     logger.info("Client requested disconnection.");
                     break;
@@ -93,13 +85,45 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void handleJsonString(String jsonString) {
+        try {
+            Object obj = JsonUtils.deserializeFromStringDynamic(jsonString);
+            Class<?> objClass = obj.getClass();
+
+            storedObjects.putIfAbsent(objClass, new ArrayList<>());
+            storedObjects.get(objClass).add(obj);
+
+            logger.info("Stored new object of type {}: {}", objClass.getSimpleName(), obj);
+            output.println("Stored object: " + obj);
+        } catch (Exception e) {
+            logger.error("Failed to deserialize JSON: {}", e.getMessage());
+            output.println("Error: Failed to deserialize JSON.");
+        }
+    }
+
+    private void showStoredObjects() {
+        if (storedObjects.isEmpty()) {
+            output.println("No objects stored.");
+            return;
+        }
+
+        StringBuilder response = new StringBuilder("Stored Objects:\n");
+        for (List<Object> objectList : storedObjects.values()) {
+            for (Object obj : objectList) {
+                response.append(obj.toString()).append("\n");
+            }
+        }
+
+        output.println(response.toString());
+        logger.info("Displayed stored objects to client.");
+    }
+
     private void sendUsageInstructions() {
         String instructions = "Welcome to the server! Available commands:\n" +
                 "1. CONNECT - Connect to the database.\n" +
                 "2. QUERY <SQL> - Execute a SQL query (Don't forget ';')).\n" +
-                "3. JSON_FILE - Send a JSON file to the server (Still working on it).\n" +
-                "4. JSON_OBJECT - Send a JSON object to the server (Only hardcoded for now sorry).\n" +
-                "5. exit - Disconnect from the server.";
+                "3. JSON_STRING <json> - Send a JSON string to the server for processing.\n" +
+                "4. exit - Disconnect from the server.";
         output.println(instructions);
     }
 

@@ -31,8 +31,10 @@ public final class JsonUtils {
     }
 
     public static void registerClass(Class<?> clazz) {
-        registeredClasses.add(clazz);
-        cacheClassFields(clazz);
+        if (!registeredClasses.contains(clazz)) {
+            registeredClasses.add(clazz);
+            cacheClassFields(clazz);
+        }
     }
 
     public static void registerCustomTypeMatcher(Class<?> clazz,

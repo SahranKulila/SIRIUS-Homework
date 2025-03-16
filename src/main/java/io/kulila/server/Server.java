@@ -1,5 +1,8 @@
 package io.kulila.server;
 
+import io.kulila.dataclass.Project;
+import io.kulila.dataclass.TestObject;
+import io.kulila.utils.JsonUtils;
 import io.kulila.utils.YamlConfigurator;
 import io.kulila.database.ConnectionPool;
 import io.kulila.database.QueryExecutor;
@@ -9,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +33,8 @@ public class Server {
     private final ConnectionPool connectionPool;
     private final QueryExecutor queryExecutor;
 
+    private static final Map<Class<?>, List<Object>> storedObjects = new HashMap<>();
+
     public Server() {
         this("server-config.yaml");
     }
@@ -42,6 +50,10 @@ public class Server {
         this.connectionPool = new ConnectionPool(maxPoolSize, connectionTimeoutMillis);
         this.queryExecutor = new QueryExecutor(maxClients, queryTimeoutMillis);
         this.threadPool = Executors.newFixedThreadPool(maxClients);
+
+        JsonUtils.registerClass(Project.class);
+        JsonUtils.registerClass(TestObject.class);
+        logger.info("Registered classes for dynamic JSON deserialization");
     }
 
     public void start() {
@@ -54,7 +66,11 @@ public class Server {
             while (running) {
                 Socket clientSocket = serverSocket.accept();
                 logger.info("New client connected: {}", clientSocket.getInetAddress());
-                threadPool.execute(new ClientHandler(clientSocket, connectionPool, queryExecutor));
+                threadPool.execute(
+                        new ClientHandler(clientSocket,
+                                        connectionPool,
+                                        queryExecutor,
+                                        storedObjects));
             }
         } catch (IOException e) {
             logger.error("Error starting server: {}", e.getMessage());
