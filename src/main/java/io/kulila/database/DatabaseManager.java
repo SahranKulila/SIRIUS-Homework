@@ -11,21 +11,37 @@ import java.sql.SQLException;
 public class DatabaseManager {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
-    private static String HOST = "localhost";
-    private static int PORT = 3306;
-    private static String USER = "root";
-    private static String PASSWORD = "qazwsx";
-    private static String DB_NAME = "sirius_schema";
     private static String JDBC_URL;
 
-    // Static block to load YAML config once at class loading
+    private static final DatabaseConfig config = new DatabaseConfig();
+
+    public static class DatabaseConfig {
+        public String host;
+        public int port;
+        public String user;
+        public String password;
+        public String dbName;
+
+        @Override
+        public String toString() {
+            return "DatabaseConfig{" +
+                    "HOST='" + host + '\'' +
+                    ", PORT=" + port +
+                    ", USER='" + user + '\'' +
+                    ", PASSWORD='" + password + '\'' +
+                    ", DB_NAME='" + dbName + '\'' +
+                    '}';
+        }
+    }
+
     static {
         loadConfiguration("database-config.yaml");
+        logger.info("Loaded config {}", config);
     }
 
     private static void loadConfiguration(String yamlFile) {
         try {
-            YamlConfigurator.configure(DatabaseManager.class, yamlFile);
+            YamlConfigurator.configure(config, yamlFile);
             logger.info("Loaded database configuration from {}", yamlFile);
         } catch (Exception e) {
             logger.error("Failed to load database configuration. Using defaults.", e);
@@ -34,13 +50,16 @@ public class DatabaseManager {
     }
 
     private static void updateJdbcUrl() {
-        JDBC_URL = "jdbc:mysql://" + HOST + ":" + PORT + "/" + DB_NAME + "?useSSL=false&serverTimezone=UTC";
+        JDBC_URL = "jdbc:mysql://" + config.host +
+                ":" + config.port +
+                "/" + config.dbName +
+                "?useSSL=false&serverTimezone=UTC";
     }
 
     public static Connection getConnection() {
         try {
-            Connection connection = DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
-            logger.info("Connected to database: {}", DB_NAME);
+            Connection connection = DriverManager.getConnection(JDBC_URL, config.user, config.password);
+            logger.info("Connected to database: {}", config.dbName);
             return connection;
         } catch (SQLException e) {
             logger.error("Database connection failed: {}", e.getMessage());

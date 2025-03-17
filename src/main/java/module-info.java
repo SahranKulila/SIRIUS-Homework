@@ -15,6 +15,8 @@ module io.kulila.gui {
     requires org.yaml.snakeyaml;
     requires java.sql;
 
+    exports io.kulila.dataclass to com.fasterxml.jackson.databind;
+
     opens io.kulila.gui to javafx.fxml;
     exports io.kulila.gui;
 }
