@@ -1,0 +1,57 @@
+/* Root and general settings */
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-base: #2b2b2b;
+    -fx-background: #2b2b2b;
+    -fx-text-fill: #cccccc;
+}
+
+/* BorderPane main container */
+BorderPane {
+    -fx-background-color: #303030;
+}
+
+/* Top bar styling */
+.top-bar {
+    -fx-padding: 10;
+    -fx-background-color: #3c3f41;
+    -fx-alignment: center-left;
+}
+
+.title-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.control-button {
+    -fx-background-color: #4c5052;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-padding: 5 15 5 15;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.control-button:hover {
+    -fx-background-color: #646768;
+}
+
+/* SubScene (3D viewport) styling */
+SubScene {
+    -fx-border-color: #212121;
+    -fx-border-width: 1;
+}
+
+/* Status bar at the bottom */
+.status-bar {
+    -fx-padding: 8;
+    -fx-background-color: #3c3f41;
+    -fx-alignment: center-left;
+}
+
+.status-label {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 12px;
+}

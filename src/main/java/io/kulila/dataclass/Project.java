@@ -1,122 +1,60 @@
 package io.kulila.dataclass;
 
-import java.sql.Date;
+import javafx.beans.property.*;
 
 public class Project {
-    private String projectId;
-    private String userId;
-    private String name;
-    private String description;
-    private Date createdAt;
-    private Date updatedAt;
-    private String sceneData;
-    private String metadata;
-    private String assetId;
-    private String configId;
-    private String extensionId;
+    private final IntegerProperty id;
+    private final StringProperty name;
+    private final StringProperty creationDate;
 
-    public String getProjectId() {
-        return projectId;
+    public Project(int id, String name, String creationDate) {
+        this.id = new SimpleIntegerProperty(id);
+        this.name = new SimpleStringProperty(name);
+        this.creationDate = new SimpleStringProperty(creationDate);
     }
 
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
+    public int getId() {
+        return id.get();
     }
 
-    public String getUserId() {
-        return userId;
+    public IntegerProperty idProperty() {
+        return id;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setId(int id) {
+        this.id.set(id);
     }
 
     public String getName() {
+        return name.get();
+    }
+
+    public StringProperty nameProperty() {
         return name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name.set(name);
     }
 
-    public String getDescription() {
-        return description;
+    public String getCreationDate() {
+        return creationDate.get();
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public StringProperty creationDateProperty() {
+        return creationDate;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getSceneData() {
-        return sceneData;
-    }
-
-    public void setSceneData(String sceneData) {
-        this.sceneData = sceneData;
-    }
-
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(String metadata) {
-        this.metadata = metadata;
-    }
-
-    public String getAssetId() {
-        return assetId;
-    }
-
-    public void setAssetId(String assetId) {
-        this.assetId = assetId;
-    }
-
-    public String getConfigId() {
-        return configId;
-    }
-
-    public void setConfigId(String configId) {
-        this.configId = configId;
-    }
-
-    public String getExtensionId() {
-        return extensionId;
-    }
-
-    public void setExtensionId(String extensionId) {
-        this.extensionId = extensionId;
+    public void setCreationDate(String creationDate) {
+        this.creationDate.set(creationDate);
     }
 
     @Override
     public String toString() {
         return "Project{" +
-                "projectId='" + projectId + '\'' +
-                ", userId='" + userId + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", sceneData='" + sceneData + '\'' +
-                ", metadata='" + metadata + '\'' +
-                ", assetId='" + assetId + '\'' +
-                ", configId='" + configId + '\'' +
-                ", extensionId='" + extensionId + '\'' +
+                "id=" + id.get() +
+                ", name='" + name.get() + '\'' +
+                ", creationDate='" + creationDate.get() + '\'' +
                 '}';
     }
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.kulila.gui.MainViewController">
+
+    <top>
+        <Label text="Project Manager" style="-fx-font-size: 24px; -fx-padding: 10px;"/>
+    </top>
+
+    <center>
+        <TableView fx:id="projectTable">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+                <TableColumn fx:id="colName" text="Project Name" prefWidth="200"/>
+                <TableColumn fx:id="colDate" text="Creation Date" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="btnCreate" text="Create" prefWidth="100"/>
+            <Button fx:id="btnUpdate" text="Update" prefWidth="100"/>
+            <Button fx:id="btnDelete" text="Delete" prefWidth="100"/>
+            <Button fx:id="btnLogout" text="Logout" prefWidth="100"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

@@ -26,6 +26,7 @@ public class Client {
     public Client(String configPath) {
         try {
             YamlConfigurator.configure(this, configPath);
+            logger.info("Loaded config {}", configString());
         } catch (Exception e) {
             logger.error("Failed to load configuration from {}: {}", configPath, e.getMessage());
             this.serverHost = "localhost";
@@ -88,6 +89,29 @@ public class Client {
         } catch (IOException e) {
             logger.error("Error closing client: {}", e.getMessage());
         }
+    }
+
+    protected PrintWriter getOutput() {
+        return output;
+    }
+
+    protected BufferedReader getInput() {
+        return input;
+    }
+
+    protected boolean isRunning() {
+        return running;
+    }
+
+    protected void setRunning(boolean value) {
+        this.running = value;
+    }
+
+    private String configString() {
+        return "Client{" +
+                "serverHost='" + serverHost + '\'' +
+                ", serverPort=" + serverPort +
+                '}';
     }
 
     public static void main(String[] args) {

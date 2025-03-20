@@ -53,7 +53,7 @@ public class DatabaseManager {
         JDBC_URL = "jdbc:mysql://" + config.host +
                 ":" + config.port +
                 "/" + config.dbName +
-                "?useSSL=false&serverTimezone=UTC";
+                "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
     }
 
     public static Connection getConnection() {
