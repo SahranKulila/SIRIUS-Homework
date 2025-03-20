@@ -11,24 +11,28 @@ import java.util.Scanner;
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private String serverHost;
-    private int serverPort;
-    private Socket socket;
-    private BufferedReader input;
-    private PrintWriter output;
-    private Scanner scanner;
-    private boolean running = false;
+    protected String serverHost;
+    protected int serverPort;
+    protected Socket socket;
+    protected BufferedReader input;
+    protected PrintWriter output;
+    protected Scanner scanner;
+    protected boolean running = false;
 
     public Client() {
         this("client-config.yaml");
     }
 
     public Client(String configPath) {
+        this(configPath, "<<Basic Client>>");
+    }
+
+    protected Client(String configPath, String debug_inheritance) {
         try {
             YamlConfigurator.configure(this, configPath);
-            logger.info("Loaded config {}", configString());
+            logger.info("Loaded config for {} {}",debug_inheritance, configString());
         } catch (Exception e) {
-            logger.error("Failed to load configuration from {}: {}", configPath, e.getMessage());
+            logger.error("Failed to load configuration for {} from {}: {}", debug_inheritance, configPath, e.getMessage());
             this.serverHost = "localhost";
             this.serverPort = 8080;
         }

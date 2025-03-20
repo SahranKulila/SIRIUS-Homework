@@ -21,19 +21,19 @@ import java.util.concurrent.Executors;
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
-    private int port = 8080; // Default port
-    private int maxClients = 10; // Default max clients
-    private int maxPoolSize = 5; // Default connection pool size
-    private long connectionTimeoutMillis = 5000; // Default connection timeout
-    private long queryTimeoutMillis = 10000; // Default query timeout
+    protected int port = 8080; // Default port
+    protected int maxClients = 10; // Default max clients
+    protected int maxPoolSize = 5; // Default connection pool size
+    protected long connectionTimeoutMillis = 5000; // Default connection timeout
+    protected long queryTimeoutMillis = 10000; // Default query timeout
 
-    private boolean running = false;
-    private ServerSocket serverSocket;
+    protected boolean running = false;
+    protected ServerSocket serverSocket;
     private ExecutorService threadPool;
-    private final ConnectionPool connectionPool;
-    private final QueryExecutor queryExecutor;
+    protected final ConnectionPool connectionPool;
+    protected final QueryExecutor queryExecutor;
 
-    private static final Map<Class<?>, List<Object>> storedObjects = new HashMap<>();
+    protected static final Map<Class<?>, List<Object>> storedObjects = new HashMap<>();
 
     public Server() {
         this("server-config.yaml");

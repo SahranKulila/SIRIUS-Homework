@@ -21,7 +21,7 @@ public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     private final Socket clientSocket;
     private BufferedReader input;
-    private PrintWriter output;
+    protected PrintWriter output;
     private boolean running = false;
     private Connection connection;
     private final ConnectionPool connectionPool;

@@ -1,6 +1,7 @@
 package io.kulila.gui;
 
-import io.kulila.database.UserDAO;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.kulila.client.ClientFX;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -10,9 +11,12 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
-    private final UserDAO userDAO = new UserDAO();
+    private final ClientFX clientFX = new ClientFX();
 
     @FXML
     private TextField usernameField;
@@ -41,13 +45,18 @@ public class LoginController {
             return;
         }
 
-        boolean isValid = userDAO.validateUser(username, password);
-        if (isValid) {
-            showAlert(Alert.AlertType.INFORMATION, "Login successful!");
-            switchToMainApp();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Invalid username or password.");
-        }
+        Map<String, String> requestData = new HashMap<>();
+        requestData.put("username", username);
+        requestData.put("password", password);
+
+        clientFX.sendJsonRequestFX("LOGIN", requestData, responseNode -> {
+            if ("SUCCESS".equals(responseNode.get("status").asText())) {
+                showAlert(Alert.AlertType.INFORMATION, "Login successful!");
+                switchToMainApp();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Invalid username or password.");
+            }
+        });
     }
 
     private void switchToSignup() {

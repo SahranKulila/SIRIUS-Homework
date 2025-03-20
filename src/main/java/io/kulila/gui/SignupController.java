@@ -1,32 +1,28 @@
 package io.kulila.gui;
 
-import io.kulila.database.UserDAO;
-import io.kulila.dataclass.User;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.kulila.client.ClientFX;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SignupController {
     private static final Logger logger = LoggerFactory.getLogger(SignupController.class);
-    private final UserDAO userDAO = new UserDAO();
+    private final ClientFX clientFX = new ClientFX();
 
     @FXML
     private TextField usernameField;
-
     @FXML
     private PasswordField passwordField;
-
     @FXML
     private PasswordField confirmPasswordField;
-
     @FXML
     private Button signupButton;
-
     @FXML
     private Button goToLoginButton;
 
@@ -51,15 +47,18 @@ public class SignupController {
             return;
         }
 
-        User newUser = new User(username, password);
-        boolean success = userDAO.insertUser(newUser);
+        Map<String, String> requestData = new HashMap<>();
+        requestData.put("username", username);
+        requestData.put("password", password);
 
-        if (success) {
-            showAlert(Alert.AlertType.INFORMATION, "Account created successfully! You can now log in.");
-            switchToLogin();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Signup failed. Username may already exist.");
-        }
+        clientFX.sendJsonRequestFX("SIGNUP", requestData, responseNode -> {
+            if ("SUCCESS".equals(responseNode.get("status").asText())) {
+                showAlert(Alert.AlertType.INFORMATION, "Account created successfully! You can now log in.");
+                switchToLogin();
+            } else {
+                showAlert(Alert.AlertType.ERROR, responseNode.get("message").asText());
+            }
+        });
     }
 
     private void switchToLogin() {

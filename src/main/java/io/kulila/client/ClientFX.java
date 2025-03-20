@@ -18,7 +18,8 @@ public class ClientFX extends Client {
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public ClientFX() {
-        super();
+        super("client-config.yaml", "<<ClientFX>>");
+        logger.info("ClientFX constructor called : {}", configString());
     }
 
     public void sendJsonRequestFX(String operation, Object data, ResponseHandler callback) {
@@ -26,7 +27,6 @@ public class ClientFX extends Client {
             try {
                 String jsonResponse = sendJsonRequest(operation, data);
                 JsonNode responseNode = objectMapper.readTree(jsonResponse);
-
                 Platform.runLater(() -> callback.handle(responseNode));
             } catch (Exception e) {
                 logger.error("Error processing JSON response: {}", e.getMessage());
@@ -53,6 +53,13 @@ public class ClientFX extends Client {
         Alert alert = new Alert(alertType);
         alert.setContentText(message);
         alert.show();
+    }
+
+    private String configString() {
+        return "ClientFX{" +
+                "serverHost='" + serverHost + '\'' +
+                ", serverPort=" + serverPort +
+                '}';
     }
 
     @FunctionalInterface
