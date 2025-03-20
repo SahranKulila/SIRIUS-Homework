@@ -15,24 +15,50 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
-public class ClientHandlerFX extends ClientHandler {
+public class ClientHandlerFX implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandlerFX.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final Socket clientSocket;
+    private final ConnectionPool connectionPool;
+    private final QueryExecutor queryExecutor;
+    private final Map<Class<?>, List<Object>> storedObjects;
     private final UserDAO userDAO = new UserDAO();
+
+    private BufferedReader input;
+    private PrintWriter output;
+    private boolean running = false;
 
     public ClientHandlerFX(Socket clientSocket,
                            ConnectionPool connectionPool,
                            QueryExecutor queryExecutor,
                            Map<Class<?>, List<Object>> storedObjects) {
-        super(clientSocket, connectionPool, queryExecutor, storedObjects);
+        this.clientSocket = clientSocket;
+        this.connectionPool = connectionPool;
+        this.queryExecutor = queryExecutor;
+        this.storedObjects = storedObjects;
     }
 
     @Override
     public void run() {
-        super.run();
+        try {
+            input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            output = new PrintWriter(clientSocket.getOutputStream(), true);
+            running = true;
+            logger.info("ClientHandlerFX started for client: {}", clientSocket.getInetAddress());
+
+            String message;
+            while (running && (message = input.readLine()) != null) {
+                processJsonRequest(message);
+            }
+        } catch (IOException e) {
+            logger.error("Error in client communication: {}", e.getMessage());
+        } finally {
+            stop();
+        }
     }
 
-    protected void processJsonRequest(String jsonMessage) {
+    private void processJsonRequest(String jsonMessage) {
         try {
             JsonNode requestNode = objectMapper.readTree(jsonMessage);
             String operation = requestNode.get("operation").asText();
@@ -48,15 +74,19 @@ public class ClientHandlerFX extends ClientHandler {
     }
 
     private void handleSignup(JsonNode dataNode) {
-        String username = dataNode.get("username").asText();
-        String password = dataNode.get("password").asText();
+        try {
+            String username = dataNode.get("username").asText();
+            String password = dataNode.get("password").asText();
 
-        User newUser = new User(username, password);
-        boolean success = userDAO.insertUser(newUser);
-        sendJsonResponse(success ? "SUCCESS" : "ERROR", success ? "Account created" : "Signup failed", null);
+            User newUser = new User(username, password);
+            boolean success = userDAO.insertUser(newUser);
+            sendJsonResponse(success ? "SUCCESS" : "ERROR", success ? "Account created" : "Signup failed", null);
+        } catch (Exception e) {
+            sendJsonResponse("ERROR", "Invalid signup data", null);
+        }
     }
 
-    protected void sendJsonResponse(String status, String message, Object data) {
+    private void sendJsonResponse(String status, String message, Object data) {
         try {
             Map<String, Object> response = Map.of(
                     "status", status,
@@ -66,6 +96,18 @@ public class ClientHandlerFX extends ClientHandler {
             output.println(objectMapper.writeValueAsString(response));
         } catch (Exception e) {
             logger.error("Failed to send JSON response: {}", e.getMessage());
+        }
+    }
+
+    private void stop() {
+        running = false;
+        try {
+            if (input != null) input.close();
+            if (output != null) output.close();
+            if (clientSocket != null) clientSocket.close();
+            logger.info("ClientHandlerFX stopped.");
+        } catch (IOException e) {
+            logger.error("Error closing client handler: {}", e.getMessage());
         }
     }
 }

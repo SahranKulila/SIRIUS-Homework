@@ -11,26 +11,26 @@ import java.util.Scanner;
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    protected String serverHost;
-    protected int serverPort;
-    protected Socket socket;
-    protected BufferedReader input;
-    protected PrintWriter output;
-    protected Scanner scanner;
-    protected boolean running = false;
+    private String serverHost;
+    private int serverPort;
+    private Socket socket;
+    private BufferedReader input;
+    private PrintWriter output;
+    private Scanner scanner;
+    private boolean running = false;
 
     public Client() {
         this("client-config.yaml");
     }
 
     public Client(String configPath) {
-        this(configPath, "<<Basic Client>>");
+        loadConfig(configPath, "<<Basic Client>>");
     }
 
-    protected Client(String configPath, String debug_inheritance) {
+    private void loadConfig(String configPath, String debug_inheritance) {
         try {
             YamlConfigurator.configure(this, configPath);
-            logger.info("Loaded config for {} {}",debug_inheritance, configString());
+            logger.info("Loaded config for {} {}", debug_inheritance, configString());
         } catch (Exception e) {
             logger.error("Failed to load configuration for {} from {}: {}", debug_inheritance, configPath, e.getMessage());
             this.serverHost = "localhost";
@@ -93,22 +93,6 @@ public class Client {
         } catch (IOException e) {
             logger.error("Error closing client: {}", e.getMessage());
         }
-    }
-
-    protected PrintWriter getOutput() {
-        return output;
-    }
-
-    protected BufferedReader getInput() {
-        return input;
-    }
-
-    protected boolean isRunning() {
-        return running;
-    }
-
-    protected void setRunning(boolean value) {
-        this.running = value;
     }
 
     private String configString() {
