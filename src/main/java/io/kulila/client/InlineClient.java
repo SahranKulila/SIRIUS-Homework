@@ -59,7 +59,7 @@ public class InlineClient {
         }
 
         try {
-            output.println("QUERY " + message);
+            output.println("QUERY " + message + ";");
             return input.readLine();
         } catch (IOException e) {
             logger.error("Failed to send or receive message: {}", e.getMessage());
