@@ -1,0 +1,20 @@
+
+
+Version:	3.50
+CmdLine:	E:\SIRIUS ING1\sahran\sahran.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	E:\SIRIUS ING1\sahran\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+Substitute:	JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot
+Substitute:	PATH = C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\msys64\ucrt64\bin\gcc.exe;C:\Program Files\MySQL\MySQL Server 8.0\bin;C:\Program Files\ExifTool;C:\Program Files\apache-maven-3.9.9\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\azer\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\azer\AppData\Local\Programs\Python\Python312\;C:\Users\azer\AppData\Local\Microsoft\WindowsApps;C:\Users\azer\AppData\Local\Microsoft\WinGet\Packages\OCaml.opam_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\azer\AppData\Local\Programs\VSCodium\bin;C:\Users\azer\AppData\Local\Programs\Windsurf\bin;C:\Users\azer\AppData\Local\GitHubDesktop\bin;C:\Users\azer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2024.3.3\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin
+JRE paths:	C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\msys64\ucrt64\bin\gcc.exe;C:\Program Files\MySQL\MySQL Server 8.0\bin;C:\Program Files\ExifTool;C:\Program Files\apache-maven-3.9.9\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\azer\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\azer\AppData\Local\Programs\Python\Python312\;C:\Users\azer\AppData\Local\Microsoft\WindowsApps;C:\Users\azer\AppData\Local\Microsoft\WinGet\Packages\OCaml.opam_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\azer\AppData\Local\Programs\VSCodium\bin;C:\Users\azer\AppData\Local\Programs\Windsurf\bin;C:\Users\azer\AppData\Local\GitHubDesktop\bin;C:\Users\azer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2024.3.3\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin
+Check launcher:	C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin\javaw.exe (OK)
+Version string: 1.021.000_004 / 64-Bit (OK)
+Launcher:	C:\Program Files\Eclipse Adoptium\jdk-21.0.4.7-hotspot\bin\javaw.exe
+Launcher args:	-jar "E:\SIRIUS ING1\sahran\sahran.exe"
+Args length:	39/32768 chars
+Exit code:	0
