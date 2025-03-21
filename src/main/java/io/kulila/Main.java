@@ -1,4 +1,5 @@
 package io.kulila;
+import io.kulila.gui.LoginView;
 import io.kulila.server.Server;
 import io.kulila.server.ServerFX;
 import org.slf4j.Logger;
@@ -8,8 +9,9 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) {
 
-        //Server.main(args);
-        ServerFX.main(args);
+        Server.main(args);
+        //ServerFX.main(args);
+        //LoginView.main(args);
 
     }
 }
