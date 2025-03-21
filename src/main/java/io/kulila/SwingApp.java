@@ -2,6 +2,7 @@ package io.kulila;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.kulila.client.ClientFX;
+import io.kulila.gui.Main3DApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,8 @@ public class SwingApp extends JFrame {
     private final JButton updateBtn = new JButton("Update");
     private final JButton deleteBtn = new JButton("Delete");
     private final JButton refreshBtn = new JButton("Refresh");
+
+    private final JButton launch3DButton = new JButton("Launch 3D View");
 
     public SwingApp() {
         setTitle("SwingApp - Auth & Project Manager");
@@ -72,6 +75,7 @@ public class SwingApp extends JFrame {
         crudPanel.add(updateBtn);
         crudPanel.add(deleteBtn);
         crudPanel.add(refreshBtn);
+        crudPanel.add(launch3DButton);
 
         projectPanel.add(crudPanel, BorderLayout.SOUTH);
         add(projectPanel, BorderLayout.CENTER);
@@ -80,6 +84,17 @@ public class SwingApp extends JFrame {
         updateBtn.addActionListener(e -> updateProject());
         deleteBtn.addActionListener(e -> deleteProject());
         refreshBtn.addActionListener(e -> loadProjects());
+        launch3DButton.addActionListener(e -> launch3DApp());
+    }
+
+    private void launch3DApp() {
+        try {
+            logger.info("Launching Main3DApplication...");
+            new Thread(() -> Main3DApplication.main(new String[0])).start();
+        } catch (Exception e) {
+            logger.error("Failed to launch Main3DApplication", e);
+            JOptionPane.showMessageDialog(this, "Failed to launch 3D view: " + e.getMessage());
+        }
     }
 
     private void handleSignup() {
