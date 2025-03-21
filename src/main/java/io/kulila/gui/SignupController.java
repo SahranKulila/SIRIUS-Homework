@@ -1,6 +1,7 @@
 package io.kulila.gui;
 
-import io.kulila.client.InlineClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.kulila.client.ClientFX;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -22,12 +23,12 @@ public class SignupController {
     @FXML
     private Button goToLoginButton;
 
-    private final InlineClient client = new InlineClient();
+    private final ClientFX client = new ClientFX();
     private static final Logger logger = LoggerFactory.getLogger(SignupController.class);
 
     @FXML
     private void initialize() {
-        client.connect();
+        client.start();
         signupButton.setOnAction(event -> handleSignup());
         goToLoginButton.setOnAction(event -> switchToLogin());
     }
@@ -36,23 +37,30 @@ public class SignupController {
         String username = usernameField.getText();
         String password = passwordField.getText();
         String confirm = confirmPasswordField.getText();
+
         if (!password.equals(confirm)) {
-            logger.error("Signup failed: passwords do not match for user: {}", username);
-            SceneLoader.loadScene((Stage) signupButton.getScene().getWindow(), "/io/kulila/gui/LoginController.fxml");
+            showAlert("Signup Failed", "Passwords do not match.");
             return;
         }
-        String checkQuery = "SELECT * FROM users WHERE username = '" + username + "'";
-        String exists = client.sendMessage(checkQuery);
-        if (exists != null && !exists.equals("null")) {
-            logger.error("Signup failed: username already exists: {}", username);
+
+        JsonNode response = client.signup(username, password);
+        String status = response.get("status").asText();
+        if ("SUCCESS".equals(status)) {
+            SceneLoader.loadScene((Stage) signupButton.getScene().getWindow(), "/io/kulila/gui/LoginController.fxml");
         } else {
-            String insertQuery = "INSERT INTO users (username, password) VALUES ('" + username + "', '" + password + "')";
-            client.sendMessage(insertQuery);
+            logger.error("Signup failed for user: {} - {}", username, response.get("message").asText());
+            showAlert("Signup Failed", response.get("message").asText());
         }
-        SceneLoader.loadScene((Stage) signupButton.getScene().getWindow(), "/io/kulila/gui/LoginController.fxml");
     }
 
     private void switchToLogin() {
         SceneLoader.loadScene((Stage) signupButton.getScene().getWindow(), "/io/kulila/gui/LoginController.fxml");
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

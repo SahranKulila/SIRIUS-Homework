@@ -26,18 +26,6 @@ public class LoginView extends Application {
             logger.info("Login window launched.");
 
 
-            Stage mainStage = new Stage();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/fxml/MainView.fxml"));
-            Parent mainRoot = loader.load();
-            Scene mainScene = new Scene(mainRoot, Constants.APP_WIDTH, Constants.APP_HEIGHT);
-            FXUtils.applyDarkTheme(mainScene);
-            mainStage.setTitle(Constants.APP_TITLE);
-            FXUtils.setStageIcon(mainStage, Constants.ICON_PATH);
-            mainStage.setScene(mainScene);
-            mainStage.setResizable(true);
-            mainStage.show();
-            logger.info("Main3DApplication window launched.");
-
         } catch (Exception e) {
             logger.error("Failed to start application with both windows.", e);
         }

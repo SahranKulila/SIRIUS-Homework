@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -181,14 +182,19 @@ public class ClientHandlerFX implements Runnable {
         }
 
         try {
-            Map<String, Object> response = Map.of(
-                    "status", status,
-                    "message", message,
-                    "data", data
-            );
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", status);
+            response.put("message", message);
+            if (data != null) {
+                // Optional: log class of data
+                logger.debug("Serializing data of type: {}", data.getClass().getName());
+            }
+            response.put("data", data);
+
             String json = objectMapper.writeValueAsString(response);
             logger.info("Sending response: {}", json);
-            output.println(json);
+            output.write(json + "\n");
+            output.flush();
             logger.info("Response sent.");
         } catch (Exception e) {
             logger.error("Failed to send JSON response: {}", e.getMessage());

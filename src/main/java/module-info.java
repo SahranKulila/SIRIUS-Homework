@@ -22,6 +22,7 @@ module io.kulila.gui {
     exports io.kulila;
 
     requires javafx.graphics;
+    requires java.desktop;
 
     opens io.kulila.gui.controllers to javafx.fxml;
     exports io.kulila.gui.controllers;

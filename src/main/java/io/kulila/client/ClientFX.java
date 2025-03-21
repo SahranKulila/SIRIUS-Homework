@@ -2,23 +2,18 @@ package io.kulila.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Platform;
-import javafx.scene.control.Alert;
+import io.kulila.utils.YamlConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.kulila.utils.YamlConfigurator;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ClientFX {
     private static final Logger logger = LoggerFactory.getLogger(ClientFX.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private String serverHost;
     private int serverPort;
@@ -47,13 +42,10 @@ public class ClientFX {
             socket = new Socket(serverHost, serverPort);
             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             output = new PrintWriter(socket.getOutputStream(), true);
-
             running = true;
-
             logger.info("Connected to server at {}:{}", serverHost, serverPort);
             Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
-
-            new Thread(this::listenForMessages).start();
+            //new Thread(this::listenForMessages).start();
         } catch (IOException e) {
             logger.error("Error connecting to server: {}", e.getMessage());
         }
@@ -83,73 +75,80 @@ public class ClientFX {
         }
     }
 
-    public void sendJsonRequestFX(String operation, Object data, ResponseHandler callback) {
-        executorService.submit(() -> {
-            try {
-                String jsonResponse = sendJsonRequest(operation, data);
-                JsonNode responseNode = objectMapper.readTree(jsonResponse);
-                Platform.runLater(() -> callback.handle(responseNode));
-            } catch (Exception e) {
-                logger.error("Error processing JSON response: {}", e.getMessage());
-                Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Error processing request."));
-            }
-        });
-    }
-
     public String sendJsonRequest(String operation, Object data) {
         try {
             if (output == null || input == null) {
+                logger.error("Client not connected (output/input is null)");
                 return "{\"status\":\"ERROR\", \"message\":\"Client not connected\"}";
             }
-            Map<String, Object> request = Map.of("operation", operation, "data", data);
-            output.println(objectMapper.writeValueAsString(request));
-            return input.readLine();
+
+            Map<String, Object> request = new HashMap<>();
+            request.put("operation", operation);
+            if (data != null) request.put("data", data);
+
+            String requestJson = objectMapper.writeValueAsString(request);
+            output.write(requestJson + "\n");
+            output.flush();
+
+            String response = input.readLine();
+            if (response == null) {
+                logger.error("Server closed connection unexpectedly.");
+                return "{\"status\":\"ERROR\", \"message\":\"Server closed connection\"}";
+            }
+
+            return response;
+
         } catch (IOException e) {
+            logger.error("Failed to send JSON request: {}", e.getMessage());
             return "{\"status\":\"ERROR\", \"message\":\"Failed to send request\"}";
         }
     }
 
-    public void login(String username, String password, ResponseHandler callback) {
+
+    public JsonNode signup(String username, String password) {
         Map<String, Object> data = new HashMap<>();
         data.put("username", username);
         data.put("password", password);
-        sendJsonRequestFX("LOGIN", data, callback);
+        return parseResponse(sendJsonRequest("SIGNUP", data));
     }
 
-    public void signup(String username, String password, ResponseHandler callback) {
+    public JsonNode login(String username, String password) {
         Map<String, Object> data = new HashMap<>();
         data.put("username", username);
         data.put("password", password);
-        sendJsonRequestFX("SIGNUP", data, callback);
+        return parseResponse(sendJsonRequest("LOGIN", data));
     }
 
-    public void getProjects(ResponseHandler callback) {
-        sendJsonRequestFX("GET_PROJECTS", null, callback);
+    public JsonNode getProjects() {
+        return parseResponse(sendJsonRequest("GET_PROJECTS", null));
     }
 
-    public void createProject(String name, ResponseHandler callback) {
+    public JsonNode createProject(String name) {
         Map<String, Object> data = Map.of("name", name);
-        sendJsonRequestFX("CREATE_PROJECT", data, callback);
+        return parseResponse(sendJsonRequest("CREATE_PROJECT", data));
     }
 
-    public void updateProject(int id, String name, ResponseHandler callback) {
+    public JsonNode updateProject(int id, String name) {
         Map<String, Object> data = Map.of("id", id, "name", name);
-        sendJsonRequestFX("UPDATE_PROJECT", data, callback);
+        return parseResponse(sendJsonRequest("UPDATE_PROJECT", data));
     }
 
-    public void deleteProject(int id, ResponseHandler callback) {
+    public JsonNode deleteProject(int id) {
         Map<String, Object> data = Map.of("id", id);
-        sendJsonRequestFX("DELETE_PROJECT", data, callback);
+        return parseResponse(sendJsonRequest("DELETE_PROJECT", data));
+    }
+
+    private JsonNode parseResponse(String jsonResponse) {
+        try {
+            return objectMapper.readTree(jsonResponse);
+        } catch (IOException e) {
+            logger.error("Failed to parse JSON response: {}", e.getMessage());
+            throw new RuntimeException("Invalid server response", e);
+        }
     }
 
     public ObjectMapper getObjectMapper() {
         return objectMapper;
-    }
-
-    private void showAlert(Alert.AlertType alertType, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setContentText(message);
-        alert.show();
     }
 
     private String configString() {
@@ -159,13 +158,17 @@ public class ClientFX {
                 '}';
     }
 
-    @FunctionalInterface
-    public interface ResponseHandler {
-        void handle(JsonNode response);
-    }
-
     public static void main(String[] args) {
         ClientFX client = new ClientFX();
         client.start();
+
+        JsonNode response = client.signup("testuser_cli", "pass123");
+        System.out.println("Signup Response: " + response.toPrettyString());
+
+        response = client.signup("testuser_cli1", "pass1234");
+        System.out.println("Signup Response: " + response.toPrettyString());
+
+        response = client.login("testuser_cli", "pass123");
+        System.out.println("Login Response: " + response.toPrettyString());
     }
 }

@@ -1,14 +1,16 @@
 package io.kulila.gui;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
-import io.kulila.client.InlineClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.kulila.client.ClientFX;
+import io.kulila.dataclass.Project;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MainViewController {
     @FXML
@@ -28,12 +30,13 @@ public class MainViewController {
     @FXML
     private TableColumn<Project, String> colDate;
 
-    private final InlineClient client = new InlineClient();
+    private final ClientFX client = new ClientFX();
     private final ObservableList<Project> projects = FXCollections.observableArrayList();
+    private static final Logger logger = LoggerFactory.getLogger(MainViewController.class);
 
     @FXML
     private void initialize() {
-        client.connect();
+        client.start();
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
@@ -47,41 +50,50 @@ public class MainViewController {
     }
 
     private void loadProjects() {
-        String response = client.sendMessage("SELECT * FROM projects");
+        JsonNode response = client.getProjects();
         projects.clear();
-        if (response != null && !response.equals("null")) {
-            String[] rows = response.split(";");
-            for (String row : rows) {
-                String[] parts = row.split(",");
-                int id = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                String date = parts[2];
+        if ("SUCCESS".equals(response.get("status").asText())) {
+            response.get("data").forEach(item -> {
+                int id = item.get("id").asInt();
+                String name = item.get("name").asText();
+                String date = item.get("creationDate").asText();
                 projects.add(new Project(id, name, date));
-            }
+            });
+        } else {
+            logger.error("Failed to load projects: {}", response.get("message").asText());
         }
     }
 
     private void createProject() {
-        client.sendMessage("INSERT INTO projects (user_id, name) VALUES (1, 'New Project')");
-        loadProjects();
+        JsonNode response = client.createProject("New Project");
+        if ("SUCCESS".equals(response.get("status").asText())) {
+            loadProjects();
+        } else {
+            logger.error("Failed to create project: {}", response.get("message").asText());
+        }
     }
 
     private void updateProject() {
         Project selected = projectTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            client.sendMessage("UPDATE projects SET name = 'Updated Project' WHERE id = " + selected.id());
-            loadProjects();
+            JsonNode response = client.updateProject(selected.getId(), "Updated Project");
+            if ("SUCCESS".equals(response.get("status").asText())) {
+                loadProjects();
+            } else {
+                logger.error("Failed to update project: {}", response.get("message").asText());
+            }
         }
     }
 
     private void deleteProject() {
         Project selected = projectTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            client.sendMessage("DELETE FROM projects WHERE id = " + selected.id());
-            loadProjects();
+            JsonNode response = client.deleteProject(selected.getId());
+            if ("SUCCESS".equals(response.get("status").asText())) {
+                loadProjects();
+            } else {
+                logger.error("Failed to delete project: {}", response.get("message").asText());
+            }
         }
     }
-}
-
-record Project(int id, String name, String date) {
 }

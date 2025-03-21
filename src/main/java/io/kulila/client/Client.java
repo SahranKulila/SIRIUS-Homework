@@ -53,7 +53,7 @@ public class Client {
             new Thread(this::listenForMessages).start();
 
             while (true) {
-                System.out.print("> ");
+                //System.out.print("> ");
                 String message = scanner.nextLine();
 
                 if ("exit".equalsIgnoreCase(message)) {

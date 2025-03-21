@@ -1,2 +1,2 @@
-serverHost: "172.31.249.174"
+serverHost: "localhost"
 serverPort: 8080
