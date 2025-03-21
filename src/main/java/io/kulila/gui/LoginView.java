@@ -17,7 +17,7 @@ public class LoginView extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(
-                Objects.requireNonNull(getClass().getResource("LoginController.fxml")));
+                Objects.requireNonNull(getClass().getResource("/io/kulila/gui/LoginController.fxml")));
         Scene scene = new Scene(root);
         primaryStage.setTitle("Login");
         primaryStage.setScene(scene);

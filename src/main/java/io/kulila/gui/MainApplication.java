@@ -1,42 +1,19 @@
 package io.kulila.gui;
 
-import io.kulila.gui.config.Constants;
-import io.kulila.gui.utils.FXUtils;
+import io.kulila.client.ClientFX;
+import javafx.application.Application;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
 
 public class MainApplication extends Application {
-
     private static final Logger logger = LoggerFactory.getLogger(MainApplication.class);
+    private final ClientFX clientFX = new ClientFX();
 
     @Override
     public void start(Stage primaryStage) {
-        try {
-            logger.info("Starting MainApplication...");
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/fxml/MainView.fxml"));
-            Parent root = loader.load();
-
-            Scene scene = new Scene(root, Constants.APP_WIDTH, Constants.APP_HEIGHT);
-            FXUtils.applyDarkTheme(scene);
-
-            primaryStage.setTitle(Constants.APP_TITLE);
-            FXUtils.setStageIcon(primaryStage, Constants.ICON_PATH);
-
-            primaryStage.setScene(scene);
-            primaryStage.setResizable(true);
-            primaryStage.show();
-
-            logger.info("Application started successfully.");
-        } catch (Exception e) {
-            logger.error("Failed to start application.", e);
-        }
+        logger.info("Starting MainApplication...");
+        SceneLoader.loadScene(primaryStage, "/io/kulila/gui/LoginView.fxml", clientFX);
     }
 
     public static void main(String[] args) {

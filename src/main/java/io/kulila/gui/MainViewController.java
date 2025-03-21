@@ -20,7 +20,7 @@ import java.util.Map;
 public class MainViewController {
     private static final Logger logger = LoggerFactory.getLogger(MainViewController.class);
     private final ObservableList<Project> projectList = FXCollections.observableArrayList();
-    private final ClientFX clientFX;
+    private ClientFX clientFX;
 
     @FXML
     private TableView<Project> projectTable;
@@ -39,8 +39,8 @@ public class MainViewController {
     @FXML
     private Button btnLogout;
 
-    public MainViewController() {
-        this.clientFX = new ClientFX();
+    public void setClientFX(ClientFX clientFX) {
+        this.clientFX = clientFX;
     }
 
     @FXML
@@ -58,10 +58,11 @@ public class MainViewController {
     }
 
     private void loadProjects() {
+        if (clientFX == null) return;
         clientFX.sendJsonRequestFX("GET_PROJECTS", null, responseNode -> {
             if ("SUCCESS".equals(responseNode.get("status").asText())) {
                 List<Project> projects = clientFX.getObjectMapper().convertValue(responseNode.get("data"), new TypeReference<>() {});
-                projectList.setAll(projects);
+                Platform.runLater(() -> projectList.setAll(projects));
                 projectTable.setItems(projectList);
             } else {
                 showAlert(Alert.AlertType.ERROR, "Failed to load projects.");
@@ -76,14 +77,14 @@ public class MainViewController {
         dialog.setContentText("Name:");
 
         dialog.showAndWait().ifPresent(name -> {
-            if (!name.trim().isEmpty()) {
+            if (!name.trim().isEmpty() && clientFX != null) {
                 Map<String, Object> requestData = new HashMap<>();
                 requestData.put("name", name);
 
                 clientFX.sendJsonRequestFX("CREATE_PROJECT", requestData, responseNode -> {
                     if ("SUCCESS".equals(responseNode.get("status").asText())) {
                         Project newProject = clientFX.getObjectMapper().convertValue(responseNode.get("data"), Project.class);
-                        projectList.add(newProject);
+                        Platform.runLater(() -> projectList.add(newProject));
                     } else {
                         showAlert(Alert.AlertType.ERROR, "Project creation failed.");
                     }
@@ -107,10 +108,9 @@ public class MainViewController {
         dialog.showAndWait().ifPresent(newName -> {
             if (!newName.trim().isEmpty()) {
                 selected.setName(newName);
-
                 clientFX.sendJsonRequestFX("UPDATE_PROJECT", selected, responseNode -> {
                     if ("SUCCESS".equals(responseNode.get("status").asText())) {
-                        projectTable.refresh();
+                        Platform.runLater(projectTable::refresh);
                     } else {
                         showAlert(Alert.AlertType.ERROR, "Project update failed.");
                     }
@@ -136,7 +136,7 @@ public class MainViewController {
 
                 clientFX.sendJsonRequestFX("DELETE_PROJECT", requestData, responseNode -> {
                     if ("SUCCESS".equals(responseNode.get("status").asText())) {
-                        projectList.remove(selected);
+                        Platform.runLater(() -> projectList.remove(selected));
                     } else {
                         showAlert(Alert.AlertType.ERROR, "Project deletion failed.");
                     }
@@ -146,8 +146,7 @@ public class MainViewController {
     }
 
     private void handleLogout() {
-        Stage stage = (Stage) btnLogout.getScene().getWindow();
-        SceneLoader.loadScene(stage, "LoginController.fxml");
+        SceneLoader.loadScene((Stage) btnLogout.getScene().getWindow(), "/views.fxml/LoginView.fxml", clientFX);
     }
 
     private void showAlert(Alert.AlertType alertType, String message) {

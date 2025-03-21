@@ -10,6 +10,7 @@ import io.kulila.utils.YamlConfigurator;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -106,6 +107,39 @@ public class ClientFX {
         } catch (IOException e) {
             return "{\"status\":\"ERROR\", \"message\":\"Failed to send request\"}";
         }
+    }
+
+    public void login(String username, String password, ResponseHandler callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("password", password);
+        sendJsonRequestFX("LOGIN", data, callback);
+    }
+
+    public void signup(String username, String password, ResponseHandler callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("password", password);
+        sendJsonRequestFX("SIGNUP", data, callback);
+    }
+
+    public void getProjects(ResponseHandler callback) {
+        sendJsonRequestFX("GET_PROJECTS", null, callback);
+    }
+
+    public void createProject(String name, ResponseHandler callback) {
+        Map<String, Object> data = Map.of("name", name);
+        sendJsonRequestFX("CREATE_PROJECT", data, callback);
+    }
+
+    public void updateProject(int id, String name, ResponseHandler callback) {
+        Map<String, Object> data = Map.of("id", id, "name", name);
+        sendJsonRequestFX("UPDATE_PROJECT", data, callback);
+    }
+
+    public void deleteProject(int id, ResponseHandler callback) {
+        Map<String, Object> data = Map.of("id", id);
+        sendJsonRequestFX("DELETE_PROJECT", data, callback);
     }
 
     public ObjectMapper getObjectMapper() {

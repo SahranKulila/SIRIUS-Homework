@@ -11,12 +11,17 @@ import java.util.List;
 public class ProjectDAO {
     private static final Logger logger = LoggerFactory.getLogger(ProjectDAO.class);
 
+    private final Connection connection;
+
+    public ProjectDAO(Connection connection) {
+        this.connection = connection;
+    }
+
     public List<Project> getAllProjects() {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM projects";
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
+        try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
@@ -35,9 +40,7 @@ public class ProjectDAO {
     public Project createProject(String name) {
         String sql = "INSERT INTO projects (name, creation_date) VALUES (?, NOW())";
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, name);
             int rowsInserted = statement.executeUpdate();
 
@@ -61,9 +64,7 @@ public class ProjectDAO {
     public boolean updateProject(Project project) {
         String sql = "UPDATE projects SET name = ? WHERE id = ?";
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, project.getName());
             statement.setInt(2, project.getId());
 
@@ -77,9 +78,7 @@ public class ProjectDAO {
     public boolean deleteProject(int projectId) {
         String sql = "DELETE FROM projects WHERE id = ?";
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, projectId);
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {

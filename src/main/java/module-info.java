@@ -43,4 +43,16 @@ module io.kulila.gui {
 
     opens io.kulila.gui.config to javafx.fxml;
     exports io.kulila.gui.config;
+
+    exports io.kulila.client;
+    opens io.kulila.client to javafx.fxml, com.fasterxml.jackson.databind;
+
+    exports io.kulila.database;
+    opens io.kulila.database to javafx.fxml;
+
+    exports io.kulila.server;
+    opens io.kulila.server to javafx.fxml;
+
+    exports io.kulila.utils;
+    opens io.kulila.utils to javafx.fxml;
 }

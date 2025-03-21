@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class SignupController {
     private static final Logger logger = LoggerFactory.getLogger(SignupController.class);
-    private final ClientFX clientFX = new ClientFX();
+    private ClientFX clientFX;
 
     @FXML
     private TextField usernameField;
@@ -26,6 +26,10 @@ public class SignupController {
     @FXML
     private Button goToLoginButton;
 
+    public void setClientFX(ClientFX clientFX) {
+        this.clientFX = clientFX;
+    }
+
     @FXML
     private void initialize() {
         signupButton.setOnAction(event -> handleSignup());
@@ -33,6 +37,12 @@ public class SignupController {
     }
 
     private void handleSignup() {
+        if (clientFX == null) {
+            logger.error("ClientFX instance is not set.");
+            showAlert(Alert.AlertType.ERROR, "Client not initialized. Restart the application.");
+            return;
+        }
+
         String username = usernameField.getText().trim();
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
@@ -52,22 +62,17 @@ public class SignupController {
         requestData.put("password", password);
 
         clientFX.sendJsonRequestFX("SIGNUP", requestData, responseNode -> {
-            if ("SUCCESS".equals(responseNode.get("status").asText())) {
-                showAlert(Alert.AlertType.INFORMATION, "Account created successfully! You can now log in.");
+            if (responseNode != null && "SUCCESS".equals(responseNode.get("status").asText())) {
+                showAlert(Alert.AlertType.INFORMATION, "Account created successfully!");
                 switchToLogin();
             } else {
-                showAlert(Alert.AlertType.ERROR, responseNode.get("message").asText());
+                showAlert(Alert.AlertType.ERROR, "Signup failed.");
             }
         });
     }
 
     private void switchToLogin() {
-        try {
-            Stage stage = (Stage) signupButton.getScene().getWindow();
-            SceneLoader.loadScene(stage, "LoginController.fxml");
-        } catch (Exception e) {
-            logger.error("Error switching to login screen: {}", e.getMessage());
-        }
+        SceneLoader.loadScene((Stage) goToLoginButton.getScene().getWindow(), "/io/kulila/gui/LoginView.fxml", clientFX);
     }
 
     private void showAlert(Alert.AlertType alertType, String message) {

@@ -3,10 +3,7 @@ package io.kulila.gui;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.kulila.client.ClientFX;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,19 +13,20 @@ import java.util.Map;
 
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
-    private final ClientFX clientFX = new ClientFX();
+    private ClientFX clientFX;
 
     @FXML
     private TextField usernameField;
-
     @FXML
     private PasswordField passwordField;
-
     @FXML
     private Button loginButton;
-
     @FXML
     private Button createAccountButton;
+
+    public void setClientFX(ClientFX clientFX) {
+        this.clientFX = clientFX;
+    }
 
     @FXML
     private void initialize() {
@@ -37,8 +35,14 @@ public class LoginController {
     }
 
     private void handleLogin() {
+        if (clientFX == null) {
+            logger.error("ClientFX instance is not set.");
+            showAlert(Alert.AlertType.ERROR, "Client not initialized. Restart the application.");
+            return;
+        }
+
         String username = usernameField.getText().trim();
-        String password = passwordField.getText();
+        String password = passwordField.getText().trim();
 
         if (username.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Username and password are required.");
@@ -50,7 +54,7 @@ public class LoginController {
         requestData.put("password", password);
 
         clientFX.sendJsonRequestFX("LOGIN", requestData, responseNode -> {
-            if ("SUCCESS".equals(responseNode.get("status").asText())) {
+            if (responseNode != null && "SUCCESS".equals(responseNode.get("status").asText())) {
                 showAlert(Alert.AlertType.INFORMATION, "Login successful!");
                 switchToMainApp();
             } else {
@@ -60,21 +64,11 @@ public class LoginController {
     }
 
     private void switchToSignup() {
-        try {
-            Stage stage = (Stage) createAccountButton.getScene().getWindow();
-            SceneLoader.loadScene(stage, "SignupController.fxml");
-        } catch (Exception e) {
-            logger.error("Error switching to signup screen: {}", e.getMessage());
-        }
+        SceneLoader.loadScene((Stage) createAccountButton.getScene().getWindow(), "/io/kulila/gui/SignupView.fxml", clientFX);
     }
 
     private void switchToMainApp() {
-        try {
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            SceneLoader.loadScene(stage, "MainView.fxml"); // Main app UI
-        } catch (Exception e) {
-            logger.error("Error switching to main application: {}", e.getMessage());
-        }
+        SceneLoader.loadScene((Stage) loginButton.getScene().getWindow(), "/io/kulila/gui/MainView.fxml", clientFX);
     }
 
     private void showAlert(Alert.AlertType alertType, String message) {

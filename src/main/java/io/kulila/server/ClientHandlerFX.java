@@ -3,8 +3,10 @@ package io.kulila.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kulila.database.ConnectionPool;
+import io.kulila.database.ProjectDAO;
 import io.kulila.database.QueryExecutor;
 import io.kulila.database.UserDAO;
+import io.kulila.dataclass.Project;
 import io.kulila.dataclass.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +26,6 @@ public class ClientHandlerFX implements Runnable {
     private final ConnectionPool connectionPool;
     private final QueryExecutor queryExecutor;
     private final Map<Class<?>, List<Object>> storedObjects;
-    private final UserDAO userDAO = new UserDAO();
 
     private BufferedReader input;
     private PrintWriter output;
@@ -66,6 +68,11 @@ public class ClientHandlerFX implements Runnable {
 
             switch (operation) {
                 case "SIGNUP" -> handleSignup(dataNode);
+                case "LOGIN" -> handleLogin(dataNode);
+                case "GET_PROJECTS" -> handleGetProjects();
+                case "CREATE_PROJECT" -> handleCreateProject(dataNode);
+                case "UPDATE_PROJECT" -> handleUpdateProject(dataNode);
+                case "DELETE_PROJECT" -> handleDeleteProject(dataNode);
                 default -> sendJsonResponse("ERROR", "Unknown operation", null);
             }
         } catch (Exception e) {
@@ -74,15 +81,79 @@ public class ClientHandlerFX implements Runnable {
     }
 
     private void handleSignup(JsonNode dataNode) {
-        try {
+        try (Connection connection = connectionPool.getConnection()) {
+            UserDAO userDAO = new UserDAO(connection);
             String username = dataNode.get("username").asText();
             String password = dataNode.get("password").asText();
-
-            User newUser = new User(username, password);
-            boolean success = userDAO.insertUser(newUser);
+            boolean success = userDAO.insertUser(new User(username, password));
             sendJsonResponse(success ? "SUCCESS" : "ERROR", success ? "Account created" : "Signup failed", null);
+            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
-            sendJsonResponse("ERROR", "Invalid signup data", null);
+            sendJsonResponse("ERROR", "Signup failed", null);
+        }
+    }
+
+    private void handleLogin(JsonNode dataNode) {
+        try (Connection connection = connectionPool.getConnection()) {
+            UserDAO userDAO = new UserDAO(connection);
+            String username = dataNode.get("username").asText();
+            String password = dataNode.get("password").asText();
+            boolean valid = userDAO.validateUser(username, password);
+            sendJsonResponse(valid ? "SUCCESS" : "ERROR", valid ? "Login successful" : "Invalid credentials", null);
+            connectionPool.releaseConnection(connection);
+        } catch (Exception e) {
+            sendJsonResponse("ERROR", "Login failed", null);
+        }
+    }
+
+    private void handleGetProjects() {
+        try (Connection connection = connectionPool.getConnection()) {
+            ProjectDAO projectDAO = new ProjectDAO(connection);
+            List<Project> projects = projectDAO.getAllProjects();
+            sendJsonResponse("SUCCESS", "Projects retrieved", projects);
+            connectionPool.releaseConnection(connection);
+        } catch (Exception e) {
+            sendJsonResponse("ERROR", "Failed to retrieve projects", null);
+        }
+    }
+
+    private void handleCreateProject(JsonNode dataNode) {
+        try (Connection connection = connectionPool.getConnection()) {
+            ProjectDAO projectDAO = new ProjectDAO(connection);
+            String name = dataNode.get("name").asText();
+            Project project = projectDAO.createProject(name);
+            sendJsonResponse(project != null ? "SUCCESS" : "ERROR",
+                    project != null ? "Project created" : "Failed to create project",
+                    project);
+            connectionPool.releaseConnection(connection);
+        } catch (Exception e) {
+            sendJsonResponse("ERROR", "Failed to create project", null);
+        }
+    }
+
+    private void handleUpdateProject(JsonNode dataNode) {
+        try (Connection connection = connectionPool.getConnection()) {
+            ProjectDAO projectDAO = new ProjectDAO(connection);
+            int id = dataNode.get("id").asInt();
+            String name = dataNode.get("name").asText();
+            Project project = new Project(id, name, "");
+            boolean updated = projectDAO.updateProject(project);
+            sendJsonResponse(updated ? "SUCCESS" : "ERROR", updated ? "Project updated" : "Update failed", null);
+            connectionPool.releaseConnection(connection);
+        } catch (Exception e) {
+            sendJsonResponse("ERROR", "Failed to update project", null);
+        }
+    }
+
+    private void handleDeleteProject(JsonNode dataNode) {
+        try (Connection connection = connectionPool.getConnection()) {
+            ProjectDAO projectDAO = new ProjectDAO(connection);
+            int id = dataNode.get("id").asInt();
+            boolean deleted = projectDAO.deleteProject(id);
+            sendJsonResponse(deleted ? "SUCCESS" : "ERROR", deleted ? "Project deleted" : "Delete failed", null);
+            connectionPool.releaseConnection(connection);
+        } catch (Exception e) {
+            sendJsonResponse("ERROR", "Failed to delete project", null);
         }
     }
 
