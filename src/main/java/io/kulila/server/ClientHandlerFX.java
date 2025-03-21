@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -81,90 +80,116 @@ public class ClientHandlerFX implements Runnable {
     }
 
     private void handleSignup(JsonNode dataNode) {
-        try (Connection connection = connectionPool.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
             UserDAO userDAO = new UserDAO(connection);
             String username = dataNode.get("username").asText();
             String password = dataNode.get("password").asText();
             boolean success = userDAO.insertUser(new User(username, password));
             sendJsonResponse(success ? "SUCCESS" : "ERROR", success ? "Account created" : "Signup failed", null);
-            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
             sendJsonResponse("ERROR", "Signup failed", null);
+        } finally {
+            if (connection != null) connectionPool.releaseConnection(connection);
         }
     }
 
     private void handleLogin(JsonNode dataNode) {
-        try (Connection connection = connectionPool.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
             UserDAO userDAO = new UserDAO(connection);
             String username = dataNode.get("username").asText();
             String password = dataNode.get("password").asText();
             boolean valid = userDAO.validateUser(username, password);
             sendJsonResponse(valid ? "SUCCESS" : "ERROR", valid ? "Login successful" : "Invalid credentials", null);
-            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
             sendJsonResponse("ERROR", "Login failed", null);
+        } finally {
+            if (connection != null) connectionPool.releaseConnection(connection);
         }
     }
 
     private void handleGetProjects() {
-        try (Connection connection = connectionPool.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
             ProjectDAO projectDAO = new ProjectDAO(connection);
             List<Project> projects = projectDAO.getAllProjects();
             sendJsonResponse("SUCCESS", "Projects retrieved", projects);
-            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
             sendJsonResponse("ERROR", "Failed to retrieve projects", null);
+        } finally {
+            if (connection != null) connectionPool.releaseConnection(connection);
         }
     }
 
     private void handleCreateProject(JsonNode dataNode) {
-        try (Connection connection = connectionPool.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
             ProjectDAO projectDAO = new ProjectDAO(connection);
             String name = dataNode.get("name").asText();
             Project project = projectDAO.createProject(name);
             sendJsonResponse(project != null ? "SUCCESS" : "ERROR",
                     project != null ? "Project created" : "Failed to create project",
                     project);
-            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
             sendJsonResponse("ERROR", "Failed to create project", null);
+        } finally {
+            if (connection != null) connectionPool.releaseConnection(connection);
         }
     }
 
     private void handleUpdateProject(JsonNode dataNode) {
-        try (Connection connection = connectionPool.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
             ProjectDAO projectDAO = new ProjectDAO(connection);
             int id = dataNode.get("id").asInt();
             String name = dataNode.get("name").asText();
             Project project = new Project(id, name, "");
             boolean updated = projectDAO.updateProject(project);
             sendJsonResponse(updated ? "SUCCESS" : "ERROR", updated ? "Project updated" : "Update failed", null);
-            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
             sendJsonResponse("ERROR", "Failed to update project", null);
+        } finally {
+            if (connection != null) connectionPool.releaseConnection(connection);
         }
     }
 
     private void handleDeleteProject(JsonNode dataNode) {
-        try (Connection connection = connectionPool.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
             ProjectDAO projectDAO = new ProjectDAO(connection);
             int id = dataNode.get("id").asInt();
             boolean deleted = projectDAO.deleteProject(id);
             sendJsonResponse(deleted ? "SUCCESS" : "ERROR", deleted ? "Project deleted" : "Delete failed", null);
-            connectionPool.releaseConnection(connection);
         } catch (Exception e) {
             sendJsonResponse("ERROR", "Failed to delete project", null);
+        } finally {
+            if (connection != null) connectionPool.releaseConnection(connection);
         }
     }
 
     private void sendJsonResponse(String status, String message, Object data) {
+        if (output == null) {
+            logger.error("Output stream is null. Cannot send response.");
+            return;
+        }
+
         try {
             Map<String, Object> response = Map.of(
                     "status", status,
                     "message", message,
                     "data", data
             );
-            output.println(objectMapper.writeValueAsString(response));
+            String json = objectMapper.writeValueAsString(response);
+            logger.info("Sending response: {}", json);
+            output.println(json);
+            logger.info("Response sent.");
         } catch (Exception e) {
             logger.error("Failed to send JSON response: {}", e.getMessage());
         }

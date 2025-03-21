@@ -16,7 +16,7 @@
          <left>
             <AnchorPane prefHeight="400.0" prefWidth="290.0" BorderPane.alignment="CENTER">
                <children>
-                  <Button layoutX="50.0" layoutY="290.0" mnemonicParsing="false" prefHeight="37.0" prefWidth="198.0" text="Se connecter" />
+                  <Button fx:id="goToLoginButton" layoutX="50.0" layoutY="290.0" mnemonicParsing="false" prefHeight="37.0" prefWidth="198.0" text="Se connecter" />
                   <Label layoutX="71.0" layoutY="270.0" text="Vous avez déjà un compte ?" textAlignment="CENTER" />
                </children>
             </AnchorPane>
