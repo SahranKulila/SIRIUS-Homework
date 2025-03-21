@@ -13,123 +13,205 @@ public class SwingApp extends JFrame {
     private final ClientFX client = new ClientFX();
     private final DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"ID", "Name", "Creation Date"}, 0);
     private final JTable projectTable = new JTable(tableModel);
+
     private final JTextField usernameField = new JTextField();
     private final JPasswordField passwordField = new JPasswordField();
     private final JTextField projectNameField = new JTextField();
 
+    private final JButton loginBtn = new JButton("Login");
+    private final JButton signupBtn = new JButton("Signup");
+    private final JButton createBtn = new JButton("Create");
+    private final JButton updateBtn = new JButton("Update");
+    private final JButton deleteBtn = new JButton("Delete");
+    private final JButton refreshBtn = new JButton("Refresh");
+
     public SwingApp() {
-        setTitle("SwingApp - Auth + Project + Client");
+        setTitle("SwingApp - Auth & Project Manager");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(850, 600);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         client.start();
+        setupAuthPanel();
+        setupProjectPanel();
+        disableProjectButtons();
+    }
 
-        JPanel authPanel = new JPanel(new GridLayout(3, 2));
+    private void setupAuthPanel() {
+        JPanel authPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         authPanel.setBorder(BorderFactory.createTitledBorder("Authentication"));
         authPanel.add(new JLabel("Username:"));
         authPanel.add(usernameField);
         authPanel.add(new JLabel("Password:"));
         authPanel.add(passwordField);
-
-        JButton loginBtn = new JButton("Login");
-        JButton signupBtn = new JButton("Signup");
-
         authPanel.add(loginBtn);
         authPanel.add(signupBtn);
+        add(authPanel, BorderLayout.NORTH);
 
         loginBtn.addActionListener(e -> handleLogin());
         signupBtn.addActionListener(e -> handleSignup());
+    }
 
+    private void setupProjectPanel() {
         JPanel projectPanel = new JPanel(new BorderLayout());
         projectPanel.setBorder(BorderFactory.createTitledBorder("Projects"));
 
         JScrollPane tableScroll = new JScrollPane(projectTable);
         projectPanel.add(tableScroll, BorderLayout.CENTER);
 
-        JPanel crudPanel = new JPanel(new GridLayout(1, 4));
+        JPanel crudPanel = new JPanel(new GridLayout(1, 5, 5, 5));
         projectNameField.setToolTipText("Project Name");
-        JButton createBtn = new JButton("Create");
-        JButton updateBtn = new JButton("Update");
-        JButton deleteBtn = new JButton("Delete");
 
         crudPanel.add(projectNameField);
         crudPanel.add(createBtn);
         crudPanel.add(updateBtn);
         crudPanel.add(deleteBtn);
+        crudPanel.add(refreshBtn);
+
+        projectPanel.add(crudPanel, BorderLayout.SOUTH);
+        add(projectPanel, BorderLayout.CENTER);
 
         createBtn.addActionListener(e -> createProject());
         updateBtn.addActionListener(e -> updateProject());
         deleteBtn.addActionListener(e -> deleteProject());
-
-        projectPanel.add(crudPanel, BorderLayout.SOUTH);
-
-        add(authPanel, BorderLayout.NORTH);
-        add(projectPanel, BorderLayout.CENTER);
+        refreshBtn.addActionListener(e -> loadProjects());
     }
 
     private void handleSignup() {
-        String user = usernameField.getText();
-        String pass = new String(passwordField.getPassword());
+        String user = usernameField.getText().trim();
+        String pass = new String(passwordField.getPassword()).trim();
+
+        if (user.isEmpty() || pass.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username and password must not be empty.");
+            return;
+        }
+
         JsonNode res = client.signup(user, pass);
         JOptionPane.showMessageDialog(this, res.toPrettyString());
+        clearAuthFields();
     }
 
     private void handleLogin() {
-        String user = usernameField.getText();
-        String pass = new String(passwordField.getPassword());
+        String user = usernameField.getText().trim();
+        String pass = new String(passwordField.getPassword()).trim();
+
+        if (user.isEmpty() || pass.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username and password must not be empty.");
+            return;
+        }
+
         JsonNode res = client.login(user, pass);
         JOptionPane.showMessageDialog(this, res.toPrettyString());
-        if ("SUCCESS".equals(res.path("status").asText())) loadProjects();
+
+        if ("SUCCESS".equals(res.path("status").asText())) {
+            enableProjectButtons();
+            loadProjects();
+        }
+
+        clearAuthFields();
     }
 
     private void loadProjects() {
         tableModel.setRowCount(0);
         JsonNode res = client.getProjects();
+
+        if (!res.has("status") || !"SUCCESS".equals(res.get("status").asText())) {
+            JOptionPane.showMessageDialog(this, res.toPrettyString());
+            return;
+        }
+
         JsonNode data = res.get("data");
-        if (data != null && data.isArray()) {
-            for (JsonNode proj : data) {
-                Vector<Object> row = new Vector<>();
-                row.add(proj.get("id").asInt());
-                row.add(proj.get("name").asText());
-                row.add(proj.get("creation_date").asText());
-                tableModel.addRow(row);
-            }
+        if (data == null || !data.isArray()) {
+            JOptionPane.showMessageDialog(this, "No projects found.");
+            return;
+        }
+
+        for (JsonNode proj : data) {
+            JsonNode idNode = proj.get("id");
+            JsonNode nameNode = proj.get("name");
+            JsonNode dateNode = proj.get("creation_date");
+
+            if (idNode == null || nameNode == null || dateNode == null) continue;
+
+            Vector<Object> row = new Vector<>();
+            row.add(idNode.asInt());
+            row.add(nameNode.asText());
+            row.add(dateNode.asText());
+            tableModel.addRow(row);
         }
     }
 
     private void createProject() {
-        String name = projectNameField.getText();
-        if (name.isBlank()) return;
+        String name = projectNameField.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Project name must not be empty.");
+            return;
+        }
+
         JsonNode res = client.createProject(name);
         JOptionPane.showMessageDialog(this, res.toPrettyString());
+        projectNameField.setText("");
         loadProjects();
     }
 
     private void updateProject() {
         int selectedRow = projectTable.getSelectedRow();
-        if (selectedRow == -1) return;
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Select a project to update.");
+            return;
+        }
+
+        String name = projectNameField.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Project name must not be empty.");
+            return;
+        }
+
         int id = (int) tableModel.getValueAt(selectedRow, 0);
-        String name = projectNameField.getText();
-        if (name.isBlank()) return;
         JsonNode res = client.updateProject(id, name);
         JOptionPane.showMessageDialog(this, res.toPrettyString());
+        projectNameField.setText("");
         loadProjects();
     }
 
     private void deleteProject() {
         int selectedRow = projectTable.getSelectedRow();
-        if (selectedRow == -1) return;
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Select a project to delete.");
+            return;
+        }
+
         int id = (int) tableModel.getValueAt(selectedRow, 0);
+        int confirm = JOptionPane.showConfirmDialog(this, "Delete project ID " + id + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
         JsonNode res = client.deleteProject(id);
         JOptionPane.showMessageDialog(this, res.toPrettyString());
         loadProjects();
     }
 
+    private void enableProjectButtons() {
+        createBtn.setEnabled(true);
+        updateBtn.setEnabled(true);
+        deleteBtn.setEnabled(true);
+        refreshBtn.setEnabled(true);
+    }
+
+    private void disableProjectButtons() {
+        createBtn.setEnabled(false);
+        updateBtn.setEnabled(false);
+        deleteBtn.setEnabled(false);
+        refreshBtn.setEnabled(false);
+    }
+
+    private void clearAuthFields() {
+        usernameField.setText("");
+        passwordField.setText("");
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new SwingApp().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new SwingApp().setVisible(true));
     }
 }
