@@ -2,6 +2,8 @@ package io.kulila;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.kulila.client.ClientFX;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -9,6 +11,8 @@ import java.awt.*;
 import java.util.Vector;
 
 public class SwingApp extends JFrame {
+
+    private static final Logger logger = LoggerFactory.getLogger(SwingApp.class);
 
     private final ClientFX client = new ClientFX();
     private final DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"ID", "Name", "Creation Date"}, 0);
@@ -88,6 +92,7 @@ public class SwingApp extends JFrame {
         }
 
         JsonNode res = client.signup(user, pass);
+        logger.info("Signup response: {}", res.toPrettyString());
         JOptionPane.showMessageDialog(this, res.toPrettyString());
         clearAuthFields();
     }
@@ -102,6 +107,7 @@ public class SwingApp extends JFrame {
         }
 
         JsonNode res = client.login(user, pass);
+        logger.info("Login response: {}", res.toPrettyString());
         JOptionPane.showMessageDialog(this, res.toPrettyString());
 
         if ("SUCCESS".equals(res.path("status").asText())) {
@@ -115,6 +121,7 @@ public class SwingApp extends JFrame {
     private void loadProjects() {
         tableModel.setRowCount(0);
         JsonNode res = client.getProjects();
+        logger.info("GET_PROJECTS response: {}", res.toPrettyString());
 
         if (!res.has("status") || !"SUCCESS".equals(res.get("status").asText())) {
             JOptionPane.showMessageDialog(this, res.toPrettyString());
@@ -123,6 +130,7 @@ public class SwingApp extends JFrame {
 
         JsonNode data = res.get("data");
         if (data == null || !data.isArray()) {
+            logger.warn("GET_PROJECTS returned no array under 'data'");
             JOptionPane.showMessageDialog(this, "No projects found.");
             return;
         }
@@ -130,9 +138,12 @@ public class SwingApp extends JFrame {
         for (JsonNode proj : data) {
             JsonNode idNode = proj.get("id");
             JsonNode nameNode = proj.get("name");
-            JsonNode dateNode = proj.get("creation_date");
+            JsonNode dateNode = proj.get("creationDate");
 
-            if (idNode == null || nameNode == null || dateNode == null) continue;
+            if (idNode == null || nameNode == null || dateNode == null) {
+                logger.warn("Skipping project with missing fields: {}", proj.toPrettyString());
+                continue;
+            }
 
             Vector<Object> row = new Vector<>();
             row.add(idNode.asInt());
@@ -150,6 +161,7 @@ public class SwingApp extends JFrame {
         }
 
         JsonNode res = client.createProject(name);
+        logger.info("CREATE_PROJECT response: {}", res.toPrettyString());
         JOptionPane.showMessageDialog(this, res.toPrettyString());
         projectNameField.setText("");
         loadProjects();
@@ -170,6 +182,7 @@ public class SwingApp extends JFrame {
 
         int id = (int) tableModel.getValueAt(selectedRow, 0);
         JsonNode res = client.updateProject(id, name);
+        logger.info("UPDATE_PROJECT response: {}", res.toPrettyString());
         JOptionPane.showMessageDialog(this, res.toPrettyString());
         projectNameField.setText("");
         loadProjects();
@@ -184,10 +197,10 @@ public class SwingApp extends JFrame {
 
         int id = (int) tableModel.getValueAt(selectedRow, 0);
         int confirm = JOptionPane.showConfirmDialog(this, "Delete project ID " + id + "?", "Confirm", JOptionPane.YES_NO_OPTION);
-
         if (confirm != JOptionPane.YES_OPTION) return;
 
         JsonNode res = client.deleteProject(id);
+        logger.info("DELETE_PROJECT response: {}", res.toPrettyString());
         JOptionPane.showMessageDialog(this, res.toPrettyString());
         loadProjects();
     }
